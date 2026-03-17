@@ -12,8 +12,8 @@ const form = ref({
   description: '',
   type: 'FORMATION',
   membre: [],
-  statut: 'ACTIF',
-  statutProposition: 'EN_ATTENTE'
+  statut: 'EN_ETTENTE',
+  statutProposition: 'SANS_VOTE'
 })
 const membreInput = ref('')
 const saving = ref(false)
@@ -234,17 +234,18 @@ onMounted(fetchActivities)
               <label class="form-label">Type</label>
               <select v-model="form.type" class="form-input">
                 <option value="FORMATION">Formation</option>
-                <option value="EVENNEMENTs">Événement</option>
+                <option value="EVENNEMENT">Événement</option>
                 <option value="REUNION">Réunion</option>
               </select>
             </div>
             <div>
               <label class="form-label">Statut</label>
               <select v-model="form.statut" class="form-input">
-                <option value="ACTIF">Actif</option>
-                <option value="INACTIF">Inactif</option>
+                <option value="EN_ATTENTE">En attente</option>
+                <option value="VALIDEE">Validée</option>
+                <option value="REFUSEE">Refusée</option>
                 <option value="EN_COURS">En cours</option>
-                <option value="TERMINE">Terminé</option>
+                <option value="TERMINEE">Terminée</option>
               </select>
             </div>
           </div>
@@ -252,8 +253,8 @@ onMounted(fetchActivities)
           <div>
             <label class="form-label">Statut de proposition</label>
             <select v-model="form.statutProposition" class="form-input">
-              <option value="EN_ATTENTE">En attente</option>
-              <option value="APPROUVE">Approuvé</option>
+              <option value="POUR_VOTE">Pour Vote</option>
+              <option value="SANS_VOTE">Sans Vote</option>
               <option value="REJETE">Rejeté</option>
             </select>
           </div>

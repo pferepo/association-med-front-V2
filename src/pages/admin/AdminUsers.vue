@@ -12,7 +12,7 @@ const newUser = ref({
   prenom: '',
   email: '',
   password: '',
-  genre: 'HOMME',
+  genre: 'MALE',
   role: 'MEMBRE'
 })
 const creating = ref(false)
@@ -64,7 +64,7 @@ function resetForm() {
     prenom: '',
     email: '',
     password: '',
-    genre: 'HOMME',
+    genre: 'MALE',
     role: 'MEMBRE'
   }
   error.value = null
@@ -206,9 +206,8 @@ onMounted(fetchUsers)
             <div>
               <label class="form-label">Genre</label>
               <select v-model="newUser.genre" class="form-input">
-                <option value="HOMME">Homme</option>
-                <option value="FEMME">Femme</option>
-                <option value="AUTRE">Autre</option>
+                <option value="MALE">Homme</option>
+                <option value="FEMALE">Femme</option>
               </select>
             </div>
             <div>
