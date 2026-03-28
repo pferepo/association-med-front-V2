@@ -12,7 +12,7 @@ const form = ref({
   description: '',
   type: 'FORMATION',
   membre: [],
-  statut: 'EN_ETTENTE',
+  statut: 'EN_ATTENTE',
   statutProposition: 'SANS_VOTE'
 })
 const membreInput = ref('')
@@ -80,8 +80,8 @@ function resetForm() {
     description: '',
     type: 'FORMATION',
     membre: [],
-    statut: 'ACTIF',
-    statutProposition: 'EN_ATTENTE'
+    statut: 'EN_ATTENTE',
+    statutProposition: 'SANS_VOTE'
   }
   membreInput.value = ''
   error.value = null
@@ -107,7 +107,6 @@ function getTypeColor(type) {
   const colors = {
     'FORMATION': 'badge-blue',
     'EVENEMENT': 'badge-green',
-    'EVENNEMENTs': 'badge-green',
     'REUNION': 'badge-yellow'
   }
   return colors[type] || 'badge-gray'
@@ -118,9 +117,21 @@ function getStatusColor(statut) {
     'ACTIF': 'badge-green',
     'INACTIF': 'badge-gray',
     'EN_COURS': 'badge-yellow',
-    'TERMINE': 'badge-red'
+    'TERMINE': 'badge-red',
+    'EN_ATTENTE': 'badge-yellow'
   }
   return colors[statut] || 'badge-gray'
+}
+
+// Couleurs pour le statut de proposition
+function getPropositionColor(statutProposition) {
+  const colors = {
+    'POUR_VOTE': 'badge-blue',
+    'SANS_VOTE': 'badge-gray',
+    'REJETE': 'badge-red',
+    'PROPOSITION': 'badge-purple'
+  }
+  return colors[statutProposition] || 'badge-gray'
 }
 
 onMounted(fetchActivities)
@@ -141,24 +152,26 @@ onMounted(fetchActivities)
       </button>
     </div>
 
-    <!-- Loading State -->
     <div v-if="loading" class="flex justify-center py-12">
       <div class="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
     </div>
 
-    <!-- Activities Grid -->
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <article
         v-for="activity in activities"
         :key="activity.id"
         class="card hover:shadow-lg transition-shadow"
       >
-        <div class="flex items-start justify-between mb-3">
+        <!-- Badges type, statut et statut proposition -->
+        <div class="flex items-start justify-between mb-3 gap-2">
           <span :class="['badge', getTypeColor(activity.type)]">
             {{ activity.type }}
           </span>
           <span :class="['badge', getStatusColor(activity.statut)]">
             {{ activity.statut }}
+          </span>
+          <span :class="['badge', getPropositionColor(activity.statutProposition)]">
+            {{ activity.statutProposition }}
           </span>
         </div>
 
@@ -196,7 +209,7 @@ onMounted(fetchActivities)
       </div>
     </div>
 
-    <!-- Activity Modal -->
+    <!-- Modal Admin -->
     <div
       v-if="showModal"
       class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50"
@@ -234,7 +247,7 @@ onMounted(fetchActivities)
               <label class="form-label">Type</label>
               <select v-model="form.type" class="form-input">
                 <option value="FORMATION">Formation</option>
-                <option value="EVENNEMENT">Événement</option>
+                <option value="EVENEMENT">Événement</option>
                 <option value="REUNION">Réunion</option>
               </select>
             </div>
@@ -256,6 +269,7 @@ onMounted(fetchActivities)
               <option value="POUR_VOTE">Pour Vote</option>
               <option value="SANS_VOTE">Sans Vote</option>
               <option value="REJETE">Rejeté</option>
+              <option value="PROPOSITION">Proposition Membre</option>
             </select>
           </div>
 
