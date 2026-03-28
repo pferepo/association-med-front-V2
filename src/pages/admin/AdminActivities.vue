@@ -1,304 +1,182 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import activityService from '@/services/activityService'
 
+const router = useRouter()
 const activities = ref([])
 const loading = ref(true)
-const showModal = ref(false)
-const editingActivity = ref(null)
-
-const form = ref({
-  titre: '',
-  description: '',
-  type: 'FORMATION',
-  membre: [],
-  statut: 'EN_ETTENTE',
-  statutProposition: 'SANS_VOTE'
-})
-const membreInput = ref('')
-const saving = ref(false)
 const error = ref(null)
 
-async function fetchActivities() {
-  loading.value = true
+// Modal participation
+const showModal = ref(false)
+const email = ref('')
+const successMessage = ref('')
+const modalError = ref('')
+const selectedActivityId = ref(null)
+
+onMounted(async () => {
   try {
-    activities.value = await activityService.getAll()
+    activities.value = await activityService.getForGuests()
   } catch (err) {
-    console.error('Error fetching activities:', err)
+    error.value = 'Impossible de charger les activités'
   } finally {
     loading.value = false
   }
-}
+})
 
-async function saveActivity() {
-  saving.value = true
-  error.value = null
-  try {
-    if (editingActivity.value) {
-      await activityService.update(editingActivity.value.id, form.value)
-    } else {
-      await activityService.create(form.value)
-    }
-    showModal.value = false
-    resetForm()
-    await fetchActivities()
-  } catch (err) {
-    error.value = err.response?.data?.message || 'Erreur lors de la sauvegarde'
-  } finally {
-    saving.value = false
-  }
-}
-
-async function deleteActivity(id) {
-  if (!confirm('Êtes-vous sûr de vouloir supprimer cette activité ?')) return
-  
-  try {
-    await activityService.delete(id)
-    await fetchActivities()
-  } catch (err) {
-    alert('Erreur lors de la suppression')
-  }
-}
-
-function editActivity(activity) {
-  editingActivity.value = activity
-  form.value = {
-    titre: activity.titre,
-    description: activity.description,
-    type: activity.type,
-    membre: activity.membre || [],
-    statut: activity.statut,
-    statutProposition: activity.statutProposition
-  }
-  showModal.value = true
-}
-
-function resetForm() {
-  editingActivity.value = null
-  form.value = {
-    titre: '',
-    description: '',
-    type: 'FORMATION',
-    membre: [],
-    statut: 'ACTIF',
-    statutProposition: 'EN_ATTENTE'
-  }
-  membreInput.value = ''
-  error.value = null
-}
-
-function openModal() {
-  resetForm()
-  showModal.value = true
-}
-
-function addMembre() {
-  if (membreInput.value.trim() && !form.value.membre.includes(membreInput.value.trim())) {
-    form.value.membre.push(membreInput.value.trim())
-    membreInput.value = ''
-  }
-}
-
-function removeMembre(index) {
-  form.value.membre.splice(index, 1)
+function goToLogin() {
+  router.push('/login')
 }
 
 function getTypeColor(type) {
   const colors = {
-    'FORMATION': 'badge-blue',
-    'EVENEMENT': 'badge-green',
-    'EVENNEMENTs': 'badge-green',
-    'REUNION': 'badge-yellow'
+    'FORMATION': 'bg-blue-100 text-blue-800',
+    'EVENEMENT': 'bg-green-100 text-green-800',
+    'REUNION': 'bg-purple-100 text-purple-800'
   }
-  return colors[type] || 'badge-gray'
+  return colors[type] || 'bg-gray-100 text-gray-800'
 }
 
 function getStatusColor(statut) {
   const colors = {
-    'ACTIF': 'badge-green',
-    'INACTIF': 'badge-gray',
-    'EN_COURS': 'badge-yellow',
-    'TERMINE': 'badge-red'
+    'ACTIF': 'bg-green-100 text-green-800',
+    'INACTIF': 'bg-gray-100 text-gray-800',
+    'EN_COURS': 'bg-yellow-100 text-yellow-800',
+    'TERMINE': 'bg-red-100 text-red-800'
   }
-  return colors[statut] || 'badge-gray'
+  return colors[statut] || 'bg-gray-100 text-gray-800'
 }
 
-onMounted(fetchActivities)
+// Envoi de participation
+async function participate() {
+  modalError.value = ''
+  successMessage.value = ''
+  if (!email.value) {
+    modalError.value = 'Veuillez entrer un email valide'
+    return
+  }
+  try {
+    await activityService.participate(selectedActivityId.value, { email: email.value })
+    successMessage.value = 'Votre participation a été enregistrée !'
+    email.value = ''
+  } catch (err) {
+    modalError.value = 'Impossible d’envoyer votre participation'
+  }
+}
 </script>
 
 <template>
-  <div>
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900">Gestion des activités</h1>
-        <p class="text-gray-600 mt-1">Créez et gérez les activités de l'association</p>
-      </div>
-      <button @click="openModal" class="btn btn-primary">
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-        </svg>
-        Nouvelle activité
-      </button>
-    </div>
-
-    <!-- Loading State -->
-    <div v-if="loading" class="flex justify-center py-12">
-      <div class="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
-    </div>
-
-    <!-- Activities Grid -->
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <article
-        v-for="activity in activities"
-        :key="activity.id"
-        class="card hover:shadow-lg transition-shadow"
-      >
-        <div class="flex items-start justify-between mb-3">
-          <span :class="['badge', getTypeColor(activity.type)]">
-            {{ activity.type }}
-          </span>
-          <span :class="['badge', getStatusColor(activity.statut)]">
-            {{ activity.statut }}
-          </span>
-        </div>
-
-        <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ activity.titre }}</h3>
-        <p class="text-gray-600 text-sm mb-4 line-clamp-2">{{ activity.description }}</p>
-
-        <div v-if="activity.membre && activity.membre.length > 0" class="mb-4">
-          <p class="text-xs text-gray-500 mb-2">Membres:</p>
-          <div class="flex flex-wrap gap-1">
-            <span
-              v-for="(membre, index) in activity.membre.slice(0, 3)"
-              :key="index"
-              class="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded"
-            >
-              {{ membre }}
-            </span>
-            <span v-if="activity.membre.length > 3" class="text-xs text-gray-500">
-              +{{ activity.membre.length - 3 }}
-            </span>
+  <div class="min-h-screen bg-gradient-to-br from-primary-50 via-white to-blue-50">
+    <!-- Header -->
+    <header class="bg-white/80 backdrop-blur-sm border-b border-gray-100 sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+              </svg>
+            </div>
+            <span class="text-xl font-bold text-gray-900">AssociationPro</span>
           </div>
+          <button @click="goToLogin" class="btn btn-primary">Se connecter</button>
         </div>
-
-        <div class="flex items-center gap-2 pt-4 border-t border-gray-100">
-          <button @click="editActivity(activity)" class="btn btn-secondary flex-1 text-sm py-2">
-            Modifier
-          </button>
-          <button @click="deleteActivity(activity.id)" class="btn btn-danger flex-1 text-sm py-2">
-            Supprimer
-          </button>
-        </div>
-      </article>
-
-      <div v-if="activities.length === 0" class="col-span-full text-center py-12 text-gray-500">
-        Aucune activité trouvée
       </div>
-    </div>
+    </header>
 
-    <!-- Activity Modal -->
-    <div
-      v-if="showModal"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50"
-      @click.self="showModal = false"
-    >
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h2 class="text-lg font-semibold text-gray-900">
-            {{ editingActivity ? 'Modifier l\'activité' : 'Nouvelle activité' }}
-          </h2>
-          <button @click="showModal = false" class="text-gray-400 hover:text-gray-600">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+    <!-- Hero Section -->
+    <section class="py-20 px-4">
+      <div class="max-w-4xl mx-auto text-center">
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          Bienvenue sur notre <span class="text-primary-600">Plateforme Associative</span>
+        </h1>
+        <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+          Découvrez nos activités, formations et événements. Rejoignez notre communauté et participez activement à la vie de l'association.
+        </p>
+        <button @click="goToLogin" class="btn btn-primary text-lg px-8 py-3">Rejoindre l'association</button>
+      </div>
+    </section>
+
+    <!-- Activities Section -->
+    <section class="py-16 px-4">
+      <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl font-bold text-gray-900 mb-4">Nos Activités</h2>
+          <p class="text-gray-600 max-w-2xl mx-auto">
+            Découvrez les activités ouvertes au public. Connectez-vous pour participer et voter.
+          </p>
+        </div>
+
+        <!-- Loading -->
+        <div v-if="loading" class="flex justify-center py-12">
+          <div class="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
+        </div>
+
+        <!-- Error -->
+        <div v-else-if="error" class="text-center py-12">
+          <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+            <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
             </svg>
-          </button>
+          </div>
+          <p class="text-gray-600">{{ error }}</p>
         </div>
 
-        <form @submit.prevent="saveActivity" class="p-6 space-y-4">
-          <div v-if="error" class="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-            {{ error }}
+        <!-- Empty -->
+        <div v-else-if="activities.length === 0" class="text-center py-12">
+          <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+            </svg>
           </div>
+          <p class="text-gray-600">Aucune activité disponible pour le moment</p>
+        </div>
 
-          <div>
-            <label class="form-label">Titre</label>
-            <input v-model="form.titre" type="text" class="form-input" required />
-          </div>
-
-          <div>
-            <label class="form-label">Description</label>
-            <textarea v-model="form.description" rows="3" class="form-input" required></textarea>
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="form-label">Type</label>
-              <select v-model="form.type" class="form-input">
-                <option value="FORMATION">Formation</option>
-                <option value="EVENNEMENT">Événement</option>
-                <option value="REUNION">Réunion</option>
-              </select>
+        <!-- Activities Grid -->
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <article v-for="activity in activities" :key="activity.id"
+                   class="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 p-6 flex flex-col justify-between">
+            <div class="flex items-start justify-between mb-4">
+              <span :class="['badge', getTypeColor(activity.type)]">{{ activity.type }}</span>
+              <span :class="['badge', getStatusColor(activity.statut)]">{{ activity.statut }}</span>
             </div>
-            <div>
-              <label class="form-label">Statut</label>
-              <select v-model="form.statut" class="form-input">
-                <option value="EN_ATTENTE">En attente</option>
-                <option value="VALIDEE">Validée</option>
-                <option value="REFUSEE">Refusée</option>
-                <option value="EN_COURS">En cours</option>
-                <option value="TERMINEE">Terminée</option>
-              </select>
-            </div>
-          </div>
 
-          <div>
-            <label class="form-label">Statut de proposition</label>
-            <select v-model="form.statutProposition" class="form-input">
-              <option value="POUR_VOTE">Pour Vote</option>
-              <option value="SANS_VOTE">Sans Vote</option>
-              <option value="REJETE">Rejeté</option>
-            </select>
-          </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ activity.titre }}</h3>
 
-          <div>
-            <label class="form-label">Membres associés</label>
-            <div class="flex gap-2 mb-2">
-              <input
-                v-model="membreInput"
-                type="text"
-                class="form-input flex-1"
-                placeholder="Nom du membre"
-                @keyup.enter.prevent="addMembre"
-              />
-              <button type="button" @click="addMembre" class="btn btn-secondary">
-                Ajouter
+            <p class="text-gray-600 text-sm mb-4 line-clamp-3">{{ activity.description }}</p>
+
+            <div class="pt-4 border-t border-gray-100 flex justify-between items-center">
+              <button @click="showModal = true; selectedActivityId = activity.id" class="btn btn-outline btn-sm">
+                Je veux participer
               </button>
             </div>
-            <div v-if="form.membre.length > 0" class="flex flex-wrap gap-2">
-              <span
-                v-for="(membre, index) in form.membre"
-                :key="index"
-                class="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm"
-              >
-                {{ membre }}
-                <button type="button" @click="removeMembre(index)" class="text-gray-400 hover:text-red-500">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </span>
-            </div>
-          </div>
+          </article>
+        </div>
 
-          <div class="flex gap-3 pt-4">
-            <button type="button" @click="showModal = false" class="btn btn-secondary flex-1">
-              Annuler
-            </button>
-            <button type="submit" :disabled="saving" class="btn btn-primary flex-1">
-              {{ saving ? 'Sauvegarde...' : (editingActivity ? 'Mettre à jour' : 'Créer') }}
-            </button>
+        <!-- Modal -->
+        <div v-if="showModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div class="bg-white rounded-xl p-6 w-full max-w-md relative">
+            <button @click="showModal = false" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">&times;</button>
+            <h3 class="text-lg font-semibold mb-4">Je souhaite participer</h3>
+            <input v-model="email" type="email" placeholder="Votre email" class="border rounded w-full px-3 py-2 mb-3"/>
+            <p v-if="modalError" class="text-red-600 text-sm mb-2">{{ modalError }}</p>
+            <p v-if="successMessage" class="text-green-600 text-sm mb-2">{{ successMessage }}</p>
+            <button @click="participate" class="btn btn-primary w-full">Envoyer</button>
           </div>
-        </form>
+        </div>
       </div>
-    </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12 mt-16">
+      <div class="max-w-7xl mx-auto px-4 text-center">
+        <p class="text-gray-400 mb-4">Plateforme de gestion associative</p>
+        <p class="text-gray-500 text-sm">&copy; 2024 AssociationPro. Tous droits réservés.</p>
+      </div>
+    </footer>
   </div>
 </template>
