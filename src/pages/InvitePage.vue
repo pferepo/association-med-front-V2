@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import activityService from '@/services/activityService'
+import participationService from '@/services/participationService'
 
 const router = useRouter()
 const activities = ref([])
@@ -15,10 +16,14 @@ const participateFirstName = ref('')
 const participateLastName = ref('')
 const participateActivity = ref(null)
 const participateMessage = ref('')
+const submittingParticipation = ref(false) // état d'envoi
 
+// Charger les activités
 onMounted(async () => {
   try {
-    activities.value = await activityService.getForGuests()
+    const data = await activityService.getForGuests()
+    // ajouter un champ "participated" initialisé à false
+    activities.value = data.map(act => ({ ...act, participated: false }))
   } catch (err) {
     error.value = 'Impossible de charger les activités'
   } finally {
@@ -49,6 +54,7 @@ function getStatusColor(statut) {
   return colors[statut] || 'bg-gray-100 text-gray-800'
 }
 
+// Ouvrir popup participation
 function openParticipate(activity) {
   participateActivity.value = activity
   participateEmail.value = ''
@@ -58,23 +64,46 @@ function openParticipate(activity) {
   showParticipatePopup.value = true
 }
 
-function submitParticipation() {
+// Soumettre participation via backend
+async function submitParticipation() {
   if (!participateEmail.value || !participateFirstName.value || !participateLastName.value) {
     participateMessage.value = 'Veuillez remplir tous les champs'
     return
   }
-  // Ici tu peux appeler ton service pour envoyer la participation
-  participateMessage.value = `Merci ${participateFirstName.value} ${participateLastName.value} ! Votre demande pour "${participateActivity.value.titre}" a été envoyée.`
 
-  // Reset des champs
-  participateEmail.value = ''
-  participateFirstName.value = ''
-  participateLastName.value = ''
+  submittingParticipation.value = true
+  participateMessage.value = ''
 
-  // Fermer le popup après 2 secondes
-  setTimeout(() => {
-    showParticipatePopup.value = false
-  }, 2000)
+  try {
+    await participationService.create({
+      nomParticipant: participateLastName.value,
+      prenomParticipant: participateFirstName.value,
+      emailParticipant: participateEmail.value,
+      activiteId: participateActivity.value.id
+    })
+
+    // Marquer l'activité comme participée uniquement pour cette activité
+    const index = activities.value.findIndex(a => a.id === participateActivity.value.id)
+    if (index !== -1) activities.value[index].participated = true
+
+    participateMessage.value = `Merci ${participateFirstName.value} ${participateLastName.value} ! Votre participation a été enregistrée.`
+
+    // Reset des champs
+    participateEmail.value = ''
+    participateFirstName.value = ''
+    participateLastName.value = ''
+
+    // Fermer le popup après 2 secondes
+    setTimeout(() => {
+      showParticipatePopup.value = false
+      participateMessage.value = ''
+    }, 2000)
+  } catch (err) {
+    console.error(err)
+    participateMessage.value = err.response?.data?.message || 'Erreur lors de l\'envoi de votre participation'
+  } finally {
+    submittingParticipation.value = false
+  }
 }
 </script>
 
@@ -98,22 +127,6 @@ function submitParticipation() {
       </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="py-20 px-4">
-      <div class="max-w-4xl mx-auto text-center">
-        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-          Bienvenue sur notre
-          <span class="text-primary-600">Plateforme Associative</span>
-        </h1>
-        <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-          Découvrez nos activités, formations et événements. Rejoignez notre communauté et participez activement à la vie de l'association.
-        </p>
-        <button @click="goToLogin" class="btn btn-primary text-lg px-8 py-3">
-          Rejoindre l'association
-        </button>
-      </div>
-    </section>
-
     <!-- Activities Section -->
     <section class="py-16 px-4">
       <div class="max-w-7xl mx-auto">
@@ -131,26 +144,10 @@ function submitParticipation() {
           </div>
 
           <!-- Error State -->
-          <div v-else-if="error" class="text-center py-12">
-            <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
-              <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <p class="text-gray-600">{{ error }}</p>
-          </div>
+          <div v-else-if="error" class="text-center py-12 text-red-600">{{ error }}</div>
 
           <!-- Empty State -->
-          <div v-else-if="activities.length === 0" class="text-center py-12">
-            <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-              <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-            </div>
-            <p class="text-gray-600">Aucune activité disponible pour le moment</p>
-          </div>
+          <div v-else-if="activities.length === 0" class="text-center py-12 text-gray-600">Aucune activité disponible</div>
 
           <!-- Activities Grid -->
           <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -165,10 +162,16 @@ function submitParticipation() {
               <p class="text-gray-600 text-sm mb-4 line-clamp-3">{{ activity.description }}</p>
 
               <div class="pt-4 border-t border-gray-100 flex justify-between items-center">
-                <button @click="openParticipate(activity)"
-                        class="btn btn-primary text-sm px-4 py-2">Je veux participer</button>
-                <button @click="goToLogin"
-                        class="text-primary-600 hover:text-primary-700 font-medium text-sm">En savoir plus</button>
+                <!-- Afficher message participation si déjà envoyé -->
+                <template v-if="activity.participated">
+                  <span class="text-green-600 font-semibold">Participation envoyée ✅</span>
+                </template>
+                <!-- Sinon afficher bouton -->
+                <template v-else>
+                  <button @click="openParticipate(activity)" class="btn btn-primary text-sm px-4 py-2">Je veux participer</button>
+                </template>
+
+                <button @click="goToLogin" class="text-primary-600 hover:text-primary-700 font-medium text-sm">En savoir plus</button>
               </div>
             </article>
           </div>
@@ -189,26 +192,11 @@ function submitParticipation() {
         <p class="text-sm text-green-600 mb-2">{{ participateMessage }}</p>
         <div class="flex justify-end gap-2">
           <button @click="showParticipatePopup = false" class="btn btn-secondary px-4 py-2">Annuler</button>
-          <button @click="submitParticipation" class="btn btn-primary px-4 py-2">Envoyer</button>
+          <button @click="submitParticipation" :disabled="submittingParticipation" class="btn btn-primary px-4 py-2">
+            {{ submittingParticipation ? 'Envoi...' : 'Envoyer' }}
+          </button>
         </div>
       </div>
     </div>
-
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-white py-12 mt-16">
-      <div class="max-w-7xl mx-auto px-4 text-center">
-        <div class="flex items-center justify-center gap-3 mb-4">
-          <div class="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-          </div>
-          <span class="text-xl font-bold">AssociationPro</span>
-        </div>
-        <p class="text-gray-400 mb-4">Plateforme de gestion associative</p>
-        <p class="text-gray-500 text-sm">&copy; 2024 AssociationPro. Tous droits réservés.</p>
-      </div>
-    </footer>
   </div>
 </template>

@@ -125,11 +125,13 @@ onMounted(fetchUsers)
               <td>
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-                    <span class="text-primary-700 font-medium">
-                      {{ user.prenom?.charAt(0) }}{{ user.nom?.charAt(0) }}
-                    </span>
+      <span class="text-primary-700 font-medium">
+        {{ user.prenom?.charAt(0) }}{{ user.nom?.charAt(0) }}
+      </span>
                   </div>
-                  <span class="font-medium">{{ user.prenom }} {{ user.nom }}</span>
+                  <span class="font-medium">
+      ID {{ user.id }} - {{ user.prenom }} {{ user.nom }}
+    </span>
                 </div>
               </td>
               <td>{{ user.email }}</td>

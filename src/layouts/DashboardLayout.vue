@@ -17,13 +17,14 @@ const navigation = computed(() => {
     { name: 'Dashboard', path: basePath.value, icon: 'dashboard' },
     { name: 'Activités', path: `${basePath.value}/activites`, icon: 'activities' },
     { name: 'Votes', path: `${basePath.value}/votes`, icon: 'votes' },
+    { name: 'Historique', path: `${basePath.value}/historique`, icon: 'history' }, // <-- AJOUT
     { name: 'Participations', path: `${basePath.value}/participations`, icon: 'participations' }
   ]
-  
+
   if (isAdmin.value) {
     baseItems.splice(1, 0, { name: 'Utilisateurs', path: '/admin/users', icon: 'users' })
   }
-  
+
   return baseItems
 })
 
@@ -41,14 +42,14 @@ function handleLogout() {
   <div class="min-h-screen bg-gray-50">
     <!-- Mobile sidebar backdrop -->
     <div
-      v-if="sidebarOpen"
-      class="fixed inset-0 bg-gray-900/50 z-40 lg:hidden"
-      @click="sidebarOpen = false"
+        v-if="sidebarOpen"
+        class="fixed inset-0 bg-gray-900/50 z-40 lg:hidden"
+        @click="sidebarOpen = false"
     ></div>
 
     <!-- Sidebar -->
     <aside
-      :class="[
+        :class="[
         'fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 lg:translate-x-0',
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       ]"
@@ -67,16 +68,16 @@ function handleLogout() {
         <!-- Navigation -->
         <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           <router-link
-            v-for="item in navigation"
-            :key="item.path"
-            :to="item.path"
-            :class="[
+              v-for="item in navigation"
+              :key="item.path"
+              :to="item.path"
+              :class="[
               'flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors',
               isActive(item.path)
                 ? 'bg-primary-50 text-primary-700'
                 : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
             ]"
-            @click="sidebarOpen = false"
+              @click="sidebarOpen = false"
           >
             <!-- Dashboard Icon -->
             <svg v-if="item.icon === 'dashboard'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,6 +94,10 @@ function handleLogout() {
             <!-- Votes Icon -->
             <svg v-else-if="item.icon === 'votes'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <!-- History Icon -->
+            <svg v-else-if="item.icon === 'history'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-9-9 9 9 0 019 9z" />
             </svg>
             <!-- Participations Icon -->
             <svg v-else-if="item.icon === 'participations'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,8 +135,8 @@ function handleLogout() {
         <div class="flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
           <!-- Mobile menu button -->
           <button
-            @click="sidebarOpen = true"
-            class="lg:hidden p-2 -ml-2 text-gray-500 hover:text-gray-700"
+              @click="sidebarOpen = true"
+              class="lg:hidden p-2 -ml-2 text-gray-500 hover:text-gray-700"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -158,8 +163,8 @@ function handleLogout() {
                 </p>
               </div>
               <button
-                @click="handleLogout"
-                class="btn btn-secondary text-sm"
+                  @click="handleLogout"
+                  class="btn btn-secondary text-sm"
               >
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

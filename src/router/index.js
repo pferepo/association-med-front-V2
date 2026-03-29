@@ -14,6 +14,7 @@ import AdminUsers from '@/pages/admin/AdminUsers.vue'
 import AdminActivities from '@/pages/admin/AdminActivities.vue'
 import AdminVotes from '@/pages/admin/AdminVotes.vue'
 import AdminParticipations from '@/pages/admin/AdminParticipations.vue'
+import Historique from '@/pages/admin/Historique.vue' // <-- ajouté ici
 
 // Member pages
 import MembreDashboard from '@/pages/membre/MembreDashboard.vue'
@@ -22,52 +23,20 @@ import MembreVotes from '@/pages/membre/MembreVotes.vue'
 import MembreParticipations from '@/pages/membre/MembreParticipations.vue'
 
 const routes = [
-  {
-    path: '/',
-    redirect: '/invite'
-  },
-  {
-    path: '/invite',
-    name: 'invite',
-    component: InvitePage,
-    meta: { public: true }
-  },
-  {
-    path: '/login',
-    name: 'login',
-    component: LoginPage,
-    meta: { public: true }
-  },
+  { path: '/', redirect: '/invite' },
+  { path: '/invite', name: 'invite', component: InvitePage, meta: { public: true } },
+  { path: '/login', name: 'login', component: LoginPage, meta: { public: true } },
   {
     path: '/admin',
     component: DashboardLayout,
     meta: { requiresAuth: true, role: 'ADMIN' },
     children: [
-      {
-        path: '',
-        name: 'admin-dashboard',
-        component: AdminDashboard
-      },
-      {
-        path: 'users',
-        name: 'admin-users',
-        component: AdminUsers
-      },
-      {
-        path: 'activites',
-        name: 'admin-activites',
-        component: AdminActivities
-      },
-      {
-        path: 'votes',
-        name: 'admin-votes',
-        component: AdminVotes
-      },
-      {
-        path: 'participations',
-        name: 'admin-participations',
-        component: AdminParticipations
-      }
+      { path: '', name: 'admin-dashboard', component: AdminDashboard },
+      { path: 'users', name: 'admin-users', component: AdminUsers },
+      { path: 'activites', name: 'admin-activites', component: AdminActivities },
+      { path: 'votes', name: 'admin-votes', component: AdminVotes },
+      { path: 'participations', name: 'admin-participations', component: AdminParticipations },
+      { path: 'historique', name: 'admin-historique', component: Historique } // <-- route ajoutée
     ]
   },
   {
@@ -75,26 +44,10 @@ const routes = [
     component: DashboardLayout,
     meta: { requiresAuth: true, role: 'MEMBRE' },
     children: [
-      {
-        path: '',
-        name: 'membre-dashboard',
-        component: MembreDashboard
-      },
-      {
-        path: 'activites',
-        name: 'membre-activites',
-        component: MembreActivites
-      },
-      {
-        path: 'votes',
-        name: 'membre-votes',
-        component: MembreVotes
-      },
-      {
-        path: 'participations',
-        name: 'membre-participations',
-        component: MembreParticipations
-      }
+      { path: '', name: 'membre-dashboard', component: MembreDashboard },
+      { path: 'activites', name: 'membre-activites', component: MembreActivites },
+      { path: 'votes', name: 'membre-votes', component: MembreVotes },
+      { path: 'participations', name: 'membre-participations', component: MembreParticipations }
     ]
   }
 ]
@@ -107,43 +60,27 @@ const router = createRouter({
 // Navigation guards
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
-  
+
   // Public routes
   if (to.meta.public) {
-    // If authenticated and trying to access login, redirect to dashboard
     if (to.name === 'login' && authStore.isAuthenticated) {
-      if (authStore.isAdmin) {
-        return next('/admin')
-      } else if (authStore.isMembre) {
-        return next('/membre')
-      }
+      return authStore.isAdmin ? next('/admin') : next('/membre')
     }
     return next()
   }
-  
-  // Check authentication
+
+  // Authenticated routes
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return next('/login')
   }
-  
-  // Check role permissions
+
+  // Role check
   if (to.meta.role) {
     const userRole = authStore.userRole
-    
-    if (to.meta.role === 'ADMIN' && userRole !== 'ADMIN') {
-      // Non-admin trying to access admin routes
-      if (userRole === 'MEMBRE') {
-        return next('/membre')
-      }
-      return next('/login')
-    }
-    
-    if (to.meta.role === 'MEMBRE' && userRole !== 'MEMBRE' && userRole !== 'ADMIN') {
-      // Non-member trying to access member routes
-      return next('/login')
-    }
+    if (to.meta.role === 'ADMIN' && userRole !== 'ADMIN') return userRole === 'MEMBRE' ? next('/membre') : next('/login')
+    if (to.meta.role === 'MEMBRE' && userRole !== 'MEMBRE' && userRole !== 'ADMIN') return next('/login')
   }
-  
+
   next()
 })
 
