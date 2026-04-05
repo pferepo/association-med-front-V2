@@ -11,8 +11,10 @@ export const voteService = {
     return response.data
   },
 
-  async closeVote(id) {
-    const response = await api.put(`/votes/${id}/close`)
+  async closeVote(id, approve) {
+    const response = await api.put(`/votes/${id}/close`, null, {
+      params: { approve }
+    })
     return response.data
   },
 
@@ -32,6 +34,11 @@ export const voteService = {
 
   async getVoteResults(voteId) {
     const response = await api.get(`/participation-votes/vote/${voteId}`)
+    return response.data
+  },
+
+  async deleteVote(id) {
+    const response = await api.delete(`/votes/${id}`)
     return response.data
   }
 }

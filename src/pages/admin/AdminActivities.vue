@@ -15,28 +15,50 @@ const form = ref({
   membre: [],
   statut: 'EN_ATTENTE',
   statutProposition: 'SANS_VOTE',
-  envoyerATous: false
+  envoyerATous: false,
+
+  // SAFE
+  dateLimiteVote: ''
 })
 
 const membreInput = ref('')
 const saving = ref(false)
 const error = ref(null)
 
-// ✅ WATCH envoyerATous
+/* =========================
+   AUTO EMAILS
+========================= */
 watch(() => form.value.envoyerATous, async (val) => {
   if (val) {
     try {
       const emails = await userService.getAllEmails()
       form.value.membre = emails
     } catch (e) {
-      console.error('Erreur récupération emails:', e)
+      console.error(e)
     }
   } else {
     form.value.membre = []
   }
 })
 
-// FETCH
+/* =========================
+   AUTO DATE +1 JOUR POUR VOTE
+========================= */
+watch(() => form.value.statutProposition, (val) => {
+  if (val === 'POUR_VOTE') {
+    if (!form.value.dateLimiteVote) {
+      const d = new Date()
+      d.setDate(d.getDate() + 1)
+      form.value.dateLimiteVote = d.toISOString().slice(0, 16)
+    }
+  } else {
+    form.value.dateLimiteVote = ''
+  }
+})
+
+/* =========================
+   FETCH
+========================= */
 async function fetchActivities() {
   loading.value = true
   try {
@@ -48,36 +70,54 @@ async function fetchActivities() {
   }
 }
 
-// SAVE
+/* =========================
+   SAVE
+========================= */
 async function saveActivity() {
   saving.value = true
   error.value = null
+
   try {
-    if (editingActivity.value) {
-      await activityService.update(editingActivity.value.id, form.value)
-    } else {
-      await activityService.create(form.value)
+    const payload = {
+      ...form.value,
+      dateLimiteVote:
+          form.value.statutProposition === 'POUR_VOTE' && form.value.dateLimiteVote
+              ? form.value.dateLimiteVote
+              : null
     }
+
+    if (editingActivity.value) {
+      await activityService.update(editingActivity.value.id, payload)
+    } else {
+      await activityService.create(payload)
+    }
+
     showModal.value = false
     resetForm()
     await fetchActivities()
+
   } catch (err) {
-    error.value = err.response?.data?.message || 'Erreur lors de la sauvegarde'
+    error.value = err.response?.data?.message || 'Erreur sauvegarde'
   } finally {
     saving.value = false
   }
 }
 
-// DELETE
+/* =========================
+   DELETE
+========================= */
 async function deleteActivity(id) {
-  if (!confirm('Êtes-vous sûr de vouloir supprimer ?')) return
+  if (!confirm('Supprimer cette activité ?')) return
   await activityService.delete(id)
   await fetchActivities()
 }
 
-// EDIT
+/* =========================
+   EDIT
+========================= */
 function editActivity(activity) {
   editingActivity.value = activity
+
   form.value = {
     titre: activity.titre,
     description: activity.description,
@@ -85,14 +125,22 @@ function editActivity(activity) {
     membre: activity.membre || [],
     statut: activity.statut,
     statutProposition: activity.statutProposition,
-    envoyerATous: false
+    envoyerATous: false,
+
+    dateLimiteVote: activity.dateLimiteVote
+        ? activity.dateLimiteVote.substring(0, 16)
+        : ''
   }
+
   showModal.value = true
 }
 
-// RESET
+/* =========================
+   RESET
+========================= */
 function resetForm() {
   editingActivity.value = null
+
   form.value = {
     titre: '',
     description: '',
@@ -100,19 +148,22 @@ function resetForm() {
     membre: [],
     statut: 'EN_ATTENTE',
     statutProposition: 'SANS_VOTE',
-    envoyerATous: false
+    envoyerATous: false,
+    dateLimiteVote: ''
   }
+
   membreInput.value = ''
   error.value = null
 }
 
-// OPEN MODAL
 function openModal() {
   resetForm()
   showModal.value = true
 }
 
-// MEMBRES
+/* =========================
+   MEMBRES
+========================= */
 function addMembre() {
   if (
       membreInput.value.trim() &&
@@ -127,7 +178,9 @@ function removeMembre(index) {
   form.value.membre.splice(index, 1)
 }
 
-// BADGES
+/* =========================
+   COLORS
+========================= */
 function getTypeColor(type) {
   return {
     FORMATION: 'badge-blue',
@@ -158,12 +211,14 @@ onMounted(fetchActivities)
 
 <template>
   <div>
+
     <!-- HEADER -->
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="text-2xl font-bold text-gray-900">Gestion des activités</h1>
-        <p class="text-gray-600 mt-1">Créez et gérez les activités</p>
+        <p class="text-gray-600 mt-1">Créer et gérer les activités</p>
       </div>
+
       <button @click="openModal" class="btn btn-primary">
         + Nouvelle activité
       </button>
@@ -174,9 +229,14 @@ onMounted(fetchActivities)
       <div class="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
     </div>
 
-    <!-- GRID -->
+    <!-- LIST -->
     <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <article v-for="activity in activities" :key="activity.id" class="card p-4 border rounded-lg">
+
+      <article
+          v-for="activity in activities"
+          :key="activity.id"
+          class="card p-4 border rounded-lg"
+      >
 
         <div class="flex gap-2 mb-3 flex-wrap">
           <span :class="['badge', getTypeColor(activity.type)]">{{ activity.type }}</span>
@@ -189,26 +249,29 @@ onMounted(fetchActivities)
         <h3 class="font-semibold mb-2">{{ activity.titre }}</h3>
         <p class="text-sm text-gray-600 mb-3">{{ activity.description }}</p>
 
-        <div v-if="activity.membre?.length" class="mb-3">
-          <p class="text-xs text-gray-500">Membres:</p>
-          <div class="flex flex-wrap gap-1">
-            <span v-for="(m,i) in activity.membre.slice(0,3)" :key="i" class="text-xs bg-gray-100 px-2 py-1 rounded">
-              {{ m }}
-            </span>
-          </div>
+        <!-- DATE VOTE -->
+        <div v-if="activity.dateLimiteVote" class="text-xs text-gray-500 mb-2">
+          Vote jusqu’au : {{ activity.dateLimiteVote }}
         </div>
 
         <div class="flex gap-2 mt-3">
-          <button @click="editActivity(activity)" class="btn btn-secondary flex-1">Modifier</button>
-          <button @click="deleteActivity(activity.id)" class="btn btn-danger flex-1">Supprimer</button>
+          <button @click="editActivity(activity)" class="btn btn-secondary flex-1">
+            Modifier
+          </button>
+
+          <button @click="deleteActivity(activity.id)" class="btn btn-danger flex-1">
+            Supprimer
+          </button>
         </div>
 
       </article>
+
     </div>
 
     <!-- MODAL -->
     <div v-if="showModal" class="fixed inset-0 flex items-center justify-center bg-black/50">
       <div class="bg-white p-6 rounded-xl w-full max-w-lg">
+
         <form @submit.prevent="saveActivity" class="space-y-4">
 
           <div v-if="error" class="text-red-600 text-sm">{{ error }}</div>
@@ -237,6 +300,16 @@ onMounted(fetchActivities)
             <option value="PROPOSITION">Proposition</option>
           </select>
 
+          <!-- DATE LIMITE -->
+          <div v-if="form.statutProposition === 'POUR_VOTE'">
+            <label class="text-sm text-gray-600">Date limite de vote</label>
+            <input
+                type="datetime-local"
+                v-model="form.dateLimiteVote"
+                class="form-input"
+            />
+          </div>
+
           <!-- MEMBRES -->
           <div>
             <input
@@ -246,17 +319,24 @@ onMounted(fetchActivities)
                 placeholder="Email membre"
                 @keyup.enter.prevent="addMembre"
             />
-            <button type="button" @click="addMembre" :disabled="form.envoyerATous">Ajouter</button>
+
+            <button type="button" @click="addMembre" :disabled="form.envoyerATous">
+              Ajouter
+            </button>
 
             <div class="flex flex-wrap gap-2 mt-2">
-              <span v-for="(m,i) in form.membre" :key="i" class="bg-gray-200 px-2 py-1 rounded">
+              <span
+                  v-for="(m,i) in form.membre"
+                  :key="i"
+                  class="bg-gray-200 px-2 py-1 rounded"
+              >
                 {{ m }}
                 <button type="button" @click="removeMembre(i)">x</button>
               </span>
             </div>
           </div>
 
-          <!-- CHECKBOX -->
+          <!-- ALL USERS -->
           <label class="flex gap-2 items-center">
             <input type="checkbox" v-model="form.envoyerATous" />
             Informer tous les abonnés
@@ -266,12 +346,14 @@ onMounted(fetchActivities)
             <button type="button" @click="showModal=false" class="btn btn-secondary flex-1">
               Annuler
             </button>
+
             <button type="submit" class="btn btn-primary flex-1">
               {{ saving ? '...' : (editingActivity ? 'Mettre à jour' : 'Créer') }}
             </button>
           </div>
 
         </form>
+
       </div>
     </div>
 
