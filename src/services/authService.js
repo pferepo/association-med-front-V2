@@ -16,6 +16,14 @@ export const authService = {
     localStorage.removeItem('user')
   },
 
+  async sendResetCode(email) {
+    return axios.post('/api/auth/send-reset-code', { email })
+  },
+
+  async resetPassword(data) {
+    return axios.post('/api/auth/reset-password', data)
+  },
+
   getToken() {
     return localStorage.getItem('token')
   },
@@ -35,6 +43,11 @@ export const authService = {
 
   isAuthenticated() {
     return !!this.getToken()
+  },
+
+  async register(userData) {
+    const response = await api.post('/users/register', userData)
+    return response.data
   }
 }
 

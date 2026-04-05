@@ -116,7 +116,6 @@ async function submitParticipation() {
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <div class="flex items-center gap-3">
-            <!-- Logo directement devant le texte -->
             <img src="@/assets/logo.png" alt="Logo" class="h-12 object-contain">
           </div>
           <button @click="goToLogin" class="btn btn-primary">Se connecter</button>

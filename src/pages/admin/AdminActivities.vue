@@ -13,8 +13,10 @@ const form = ref({
   type: 'FORMATION',
   membre: [],
   statut: 'EN_ATTENTE',
-  statutProposition: 'SANS_VOTE'
+  statutProposition: 'SANS_VOTE',
+  envoyerATous: false // ✅ AJOUT
 })
+
 const membreInput = ref('')
 const saving = ref(false)
 const error = ref(null)
@@ -71,7 +73,8 @@ function editActivity(activity) {
     type: activity.type,
     membre: activity.membre || [],
     statut: activity.statut,
-    statutProposition: activity.statutProposition
+    statutProposition: activity.statutProposition,
+    envoyerATous: false
   }
   showModal.value = true
 }
@@ -85,7 +88,8 @@ function resetForm() {
     type: 'FORMATION',
     membre: [],
     statut: 'EN_ATTENTE',
-    statutProposition: 'SANS_VOTE'
+    statutProposition: 'SANS_VOTE',
+    envoyerATous: false
   }
   membreInput.value = ''
   error.value = null
@@ -189,8 +193,8 @@ onMounted(fetchActivities)
           </div>
         </div>
 
-        <!-- PROPOSÉ PAR -->
-        <div v-if="activity.statutProposition === 'PROPOSITION'" class="mt-2">
+        <!-- ✅ CORRECTION ICI -->
+        <div v-if="activity.createur" class="mt-2">
           <span class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800 font-medium">
             Proposé par: {{ activity.createur }}
           </span>
@@ -212,16 +216,31 @@ onMounted(fetchActivities)
     <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/50" @click.self="showModal=false">
       <div class="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <form @submit.prevent="saveActivity" class="p-6 space-y-4">
+
           <div v-if="error" class="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{{ error }}</div>
 
           <div>
             <label class="form-label">Titre</label>
             <input v-model="form.titre" type="text" class="form-input" required />
           </div>
+
           <div>
             <label class="form-label">Description</label>
             <textarea v-model="form.description" rows="3" class="form-input" required></textarea>
           </div>
+
+          <!-- ✅ CHECKBOX AJOUTÉE (BON ENDROIT) -->
+          <div class="flex items-center gap-2">
+            <input type="checkbox" v-model="form.envoyerATous" id="envoyerTous" />
+            <label for="envoyerTous" class="text-sm text-gray-700">
+              Envoyer cette activité à tous les abonnés
+            </label>
+          </div>
+
+          <div v-if="form.envoyerATous" class="text-xs text-green-600">
+            Tous les utilisateurs recevront un email
+          </div>
+
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="form-label">Type</label>
@@ -240,6 +259,7 @@ onMounted(fetchActivities)
               </select>
             </div>
           </div>
+
           <div>
             <label class="form-label">Statut de proposition</label>
             <select v-model="form.statutProposition" class="form-input">
@@ -249,12 +269,14 @@ onMounted(fetchActivities)
               <option value="PROPOSITION">Proposition</option>
             </select>
           </div>
+
           <div>
             <label class="form-label">Membres associés</label>
             <div class="flex gap-2 mb-2">
               <input v-model="membreInput" type="text" class="form-input flex-1" placeholder="Nom du membre" @keyup.enter.prevent="addMembre" />
               <button type="button" @click="addMembre" class="btn btn-secondary">Ajouter</button>
             </div>
+
             <div v-if="form.membre.length > 0" class="flex flex-wrap gap-2">
               <span v-for="(m, i) in form.membre" :key="i" class="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm">
                 {{ m }}
@@ -265,8 +287,11 @@ onMounted(fetchActivities)
 
           <div class="flex gap-3 pt-4">
             <button type="button" @click="showModal=false" class="btn btn-secondary flex-1">Annuler</button>
-            <button type="submit" :disabled="saving" class="btn btn-primary flex-1">{{ saving ? 'Sauvegarde...' : (editingActivity ? 'Mettre à jour' : 'Créer') }}</button>
+            <button type="submit" :disabled="saving" class="btn btn-primary flex-1">
+              {{ saving ? 'Sauvegarde...' : (editingActivity ? 'Mettre à jour' : 'Créer') }}
+            </button>
           </div>
+
         </form>
       </div>
     </div>
