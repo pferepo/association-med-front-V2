@@ -1,145 +1,162 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { useRouter } from 'vue-router'
+import userService from '@/services/userService'
+import contactService from "@/services/contactService.js";
 
-const membres = ref([])
+const router = useRouter()
+
+const goBack = () => {
+  router.back()
+}
+
+const compteAppli = ref(null)
 const loading = ref(true)
+
+/* FORM */
+const form = ref({
+  nom: '',
+  email: '',
+  objectif: '',
+  message: ''
+})
+
+const errors = ref({})
 
 onMounted(async () => {
   try {
-    const res = await axios.get('http://localhost:8080/api/membres')
-    membres.value = res.data
-  } catch (e) {
-    console.error(e)
+    compteAppli.value = await userService.getCompteAppli()
   } finally {
     loading.value = false
   }
 })
+
+const submitForm = async () => {
+  errors.value = {}
+
+  if (!form.value.nom) errors.value.nom = "Champ obligatoire"
+  if (!form.value.email) errors.value.email = "Champ obligatoire"
+  if (!form.value.objectif) errors.value.objectif = "Champ obligatoire"
+  if (!form.value.message) errors.value.message = "Champ obligatoire"
+
+  if (Object.keys(errors.value).length > 0) return
+
+  try {
+    await contactService.sendContactForm(form.value)
+
+    alert("Message envoyé avec succès ✅")
+
+    form.value = {
+      nom: '',
+      email: '',
+      objectif: '',
+      message: ''
+    }
+
+  } catch (e) {
+    console.error(e)
+    alert("Erreur lors de l'envoi ❌")
+  }
+}
+
 </script>
 
 <template>
-  <div class="max-w-6xl mx-auto space-y-20 py-10">
+  <div class="max-w-4xl mx-auto py-10 px-4 space-y-10">
 
-    <!-- HEADER ACTION -->
-    <div class="flex justify-between items-center">
-
-      <router-link
-          to="/"
-          class="text-sm text-gray-600 hover:text-primary-600 transition"
+    <!-- HEADER -->
+    <div class="flex items-center justify-between">
+      <button
+          @click="goBack"
+          class="text-sm text-gray-600 hover:text-blue-600 transition"
       >
-        ← Retour à l’accueil
-      </router-link>
+        ← Retour
+      </button>
+    </div>
+
+    <!-- TITLE -->
+    <h1 class="text-4xl font-bold text-center text-gray-900">
+      Contactez-Nous
+    </h1>
+
+    <!-- DYNAMIC INFO -->
+    <div v-if="!loading && compteAppli"
+         class="bg-white border rounded-xl p-6 shadow-sm space-y-3 text-gray-700">
+
+      <p>
+        <strong>Responsable :</strong>
+        {{ compteAppli.nom }}
+      </p>
+
+      <p>
+        <strong>Téléphone :</strong>
+        {{ compteAppli.tel }}
+      </p>
+
+      <p>
+        <strong>Email :</strong>
+        {{ compteAppli.email }}
+      </p>
+
+
+
 
     </div>
 
-    <!-- HERO -->
-    <section class="text-center space-y-6">
+    <!-- LOADING -->
+    <div v-else class="text-center text-gray-500">
+      Chargement des informations...
+    </div>
 
-      <img
-          src="@/assets/logo.png"
-          class="w-48 h-48 mx-auto object-contain drop-shadow-md hover:scale-105 transition duration-300"
-      />
+    <!-- FORM -->
+    <div class="bg-white border rounded-xl p-6 shadow-sm space-y-4">
 
-      <h1 class="text-5xl font-bold text-gray-900">
-        Qui sommes-nous ?
-      </h1>
-
-      <p class="text-gray-600 text-lg max-w-3xl mx-auto leading-relaxed">
-        Une association médicale engagée dans la formation, la collaboration et l’innovation,
-        au service des professionnels de santé et de l’amélioration continue des soins.
-      </p>
-
-    </section>
-
-    <!-- INTRO -->
-    <section class="bg-white p-10 rounded-2xl shadow-sm border border-gray-100">
-      <p class="text-gray-700 leading-relaxed text-lg">
-        L’Association Médicale Ben Guerdane rassemble des professionnels de santé autour
-        d’une vision commune : promouvoir l’excellence médicale, encourager la formation continue
-        et renforcer la qualité des soins.
-      </p>
-    </section>
-
-    <!-- ACTIVITES -->
-    <section class="space-y-6">
-
-      <h2 class="text-3xl font-semibold text-center text-gray-900">
-        Nos activités
+      <h2 class="text-xl font-semibold">
+        Formulaire de Contact
       </h2>
 
-      <div class="grid md:grid-cols-3 gap-6">
-
-        <div class="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition text-center">
-          <p class="font-semibold text-gray-900">Formations</p>
-          <p class="text-sm text-gray-500 mt-2">Ateliers pratiques et formations continues</p>
-        </div>
-
-        <div class="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition text-center">
-          <p class="font-semibold text-gray-900">Conférences</p>
-          <p class="text-sm text-gray-500 mt-2">Événements scientifiques et échanges</p>
-        </div>
-
-        <div class="bg-white p-6 rounded-xl shadow-sm border hover:shadow-md transition text-center">
-          <p class="font-semibold text-gray-900">Collaborations</p>
-          <p class="text-sm text-gray-500 mt-2">Travail entre professionnels de santé</p>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- EQUIPE -->
-    <section class="space-y-10">
-
-      <h2 class="text-3xl font-semibold text-center text-gray-900">
-        Notre équipe
-      </h2>
-
-      <div v-if="loading" class="text-center text-gray-500">
-        Chargement des membres...
+      <!-- NOM -->
+      <div>
+        <input v-model="form.nom"
+               type="text"
+               placeholder="Votre nom"
+               class="w-full border p-3 rounded" />
+        <p v-if="errors.nom" class="text-red-500 text-sm">{{ errors.nom }}</p>
       </div>
 
-      <div
-          v-else
-          class="grid sm:grid-cols-2 md:grid-cols-3 gap-8"
-      >
-
-        <div
-            v-for="m in membres"
-            :key="m.id"
-            class="bg-white p-6 rounded-2xl shadow-sm border text-center hover:shadow-lg hover:-translate-y-1 transition duration-300"
-        >
-
-          <img
-              :src="m.imageUrl || 'https://via.placeholder.com/150'"
-              class="w-28 h-28 rounded-full mx-auto mb-4 object-cover border"
-          />
-
-          <h3 class="font-semibold text-gray-900 text-lg">
-            {{ m.nom }} {{ m.prenom }}
-          </h3>
-
-          <p class="text-sm text-gray-500 mt-1">
-            {{ m.role }}
-          </p>
-
-        </div>
-
+      <!-- EMAIL -->
+      <div>
+        <input v-model="form.email"
+               type="email"
+               placeholder="E-mail"
+               class="w-full border p-3 rounded" />
+        <p v-if="errors.email" class="text-red-500 text-sm">{{ errors.email }}</p>
       </div>
 
-    </section>
+      <!-- OBJECTIF -->
+      <div>
+        <input v-model="form.objectif"
+               type="text"
+               placeholder="Objectif"
+               class="w-full border p-3 rounded" />
+        <p v-if="errors.objectif" class="text-red-500 text-sm">{{ errors.objectif }}</p>
+      </div>
 
-    <!-- VALEURS -->
-    <section class="bg-white p-10 rounded-2xl shadow-sm border text-center">
+      <!-- MESSAGE -->
+      <div>
+        <textarea v-model="form.message"
+                  placeholder="Message"
+                  class="w-full border p-3 rounded h-32"></textarea>
+        <p v-if="errors.message" class="text-red-500 text-sm">{{ errors.message }}</p>
+      </div>
 
-      <h2 class="text-3xl font-semibold mb-4">
-        Nos valeurs
-      </h2>
+      <!-- SUBMIT -->
+      <button @click="submitForm"
+              class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">
+        Envoyer
+      </button>
 
-      <p class="text-gray-600 leading-relaxed">
-        Excellence • Éthique • Innovation • Collaboration • Engagement au service du patient
-      </p>
-
-    </section>
+    </div>
 
   </div>
 </template>

@@ -1,117 +1,232 @@
+<script setup>
+import { ref, onMounted } from 'vue'
+import userService from '@/services/userService'
+
+const membres = ref([])
+const loading = ref(true)
+
+const BASE_URL = import.meta.env.VITE_API_URL
+const getImageUrl = (p) => (p ? BASE_URL + p : null)
+
+onMounted(async () => {
+  try {
+    membres.value = await userService.getBureauMembers()
+  } catch (e) {
+    console.error(e)
+  } finally {
+    loading.value = false
+  }
+})
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const goBack = () => {
+  router.back()
+}
+</script>
+
 <template>
-  <div class="max-w-5xl mx-auto space-y-12">
+  <div class="max-w-6xl mx-auto space-y-20 py-10 px-4">
+
 
     <!-- HEADER -->
-    <section class="text-center">
-      <h1 class="text-3xl font-bold text-gray-900 mb-4">
+    <div class="flex justify-between items-center">
+      <button
+          @click="goBack"
+          class="text-sm text-gray-600 hover:text-blue-600 transition"
+      >
+        ← Retour
+      </button>
+    </div>
+
+    <!-- HERO -->
+    <section class="text-center space-y-6">
+
+      <img src="@/assets/logo.png"
+           class="w-40 h-40 mx-auto object-contain drop-shadow-md"/>
+
+      <h1 class="text-4xl md:text-5xl font-bold text-gray-900">
         Qui sommes-nous ?
       </h1>
-      <p class="text-gray-600 text-lg">
-        Une association médicale engagée dans la formation, la collaboration et l’innovation,
-        au service des professionnels de santé et de la qualité des soins.
+
+      <p class="text-gray-600 text-lg max-w-3xl mx-auto leading-relaxed">
+        Une association médicale engagée dans la formation, la collaboration
+        et l’innovation, au service des professionnels de santé.
       </p>
+
     </section>
 
     <!-- INTRO -->
-    <section class="bg-white p-6 rounded-xl shadow-sm">
-      <p class="text-gray-700 leading-relaxed">
-        L’Association Médicale Ben Guerdane est une organisation professionnelle réunissant
-        des médecins et des acteurs du domaine de la santé autour d’une vision commune :
-        promouvoir l’excellence médicale, renforcer les compétences et favoriser le partage
-        des connaissances.
+    <section class="bg-white p-8 rounded-2xl shadow-sm border text-center">
+      <p class="text-gray-700 leading-relaxed text-lg">
+        L’Association Médicale Ben Guerdane rassemble des professionnels de santé
+        autour d’une vision commune : promouvoir l’excellence médicale,
+        encourager la formation continue et améliorer la qualité des soins.
       </p>
-
-      <p class="text-gray-700 mt-4 leading-relaxed">
-        À travers ses initiatives, elle constitue un espace d’échange, de formation et
-        de collaboration, contribuant activement à l’amélioration des pratiques médicales
-        et à la qualité des soins offerts aux patients.
-      </p>
-    </section>
-
-    <!-- MISSION -->
-    <section>
-      <h2 class="text-2xl font-semibold text-gray-900 mb-4">Notre mission</h2>
-
-      <div class="grid md:grid-cols-2 gap-4">
-        <div class="bg-white p-4 rounded-lg shadow-sm">Encourager la formation continue des professionnels de santé</div>
-        <div class="bg-white p-4 rounded-lg shadow-sm">Favoriser le partage d’expériences et de connaissances</div>
-        <div class="bg-white p-4 rounded-lg shadow-sm">Améliorer la qualité des soins et la prise en charge des patients</div>
-        <div class="bg-white p-4 rounded-lg shadow-sm">Soutenir la recherche médicale et l’innovation</div>
-      </div>
-    </section>
-
-    <!-- VISION -->
-    <section>
-      <h2 class="text-2xl font-semibold text-gray-900 mb-4">Notre vision</h2>
-
-      <p class="text-gray-700 leading-relaxed">
-        Nous aspirons à devenir un acteur de référence dans le domaine médical,
-        reconnu pour son engagement, son expertise et son impact sur le système de santé.
-      </p>
-
-      <ul class="mt-4 space-y-2 text-gray-700">
-        <li>• Développer un réseau solide de professionnels de santé</li>
-        <li>• Contribuer à l’évolution des pratiques médicales</li>
-        <li>• Promouvoir une médecine basée sur l’éthique et la science</li>
-        <li>• Encourager l’innovation et l’amélioration continue</li>
-      </ul>
     </section>
 
     <!-- ACTIVITES -->
-    <section>
-      <h2 class="text-2xl font-semibold text-gray-900 mb-4">Nos activités</h2>
+    <section class="space-y-6">
+      <h2 class="text-3xl font-semibold text-center text-gray-900">
+        Nos activités
+      </h2>
 
-      <div class="grid md:grid-cols-2 gap-4">
-        <div class="bg-white p-4 rounded-lg shadow-sm">Organisation de formations et ateliers</div>
-        <div class="bg-white p-4 rounded-lg shadow-sm">Conférences et événements scientifiques</div>
-        <div class="bg-white p-4 rounded-lg shadow-sm">Programmes de sensibilisation</div>
-        <div class="bg-white p-4 rounded-lg shadow-sm">Collaboration entre professionnels de santé</div>
+      <div class="grid md:grid-cols-3 gap-6">
+
+        <div class="card">
+          <p class="title">Formations</p>
+          <p class="desc">Ateliers pratiques et formations continues</p>
+        </div>
+
+        <div class="card">
+          <p class="title">Conférences</p>
+          <p class="desc">Événements scientifiques et échanges</p>
+        </div>
+
+        <div class="card">
+          <p class="title">Collaborations</p>
+          <p class="desc">Travail entre professionnels de santé</p>
+        </div>
+
       </div>
+    </section>
+
+    <!-- EQUIPE -->
+    <section class="space-y-10">
+
+      <h2 class="text-3xl font-semibold text-center text-gray-900">
+        Bureau Exécutif
+      </h2>
+
+      <div v-if="loading" class="text-center text-gray-500">
+        Chargement des membres...
+      </div>
+
+      <div v-else class="grid sm:grid-cols-2 md:grid-cols-3 gap-8">
+
+        <div v-for="m in membres"
+             :key="m.id"
+             class="user-card">
+
+          <!-- IMAGE -->
+          <img v-if="m.imageUrl"
+               :src="getImageUrl(m.imageUrl)"
+               class="avatar"/>
+
+          <div v-else class="avatar fallback">
+            {{ m.nom?.[0] }}{{ m.prenom?.[0] }}
+          </div>
+
+          <!-- INFOS -->
+          <h3 class="name">
+            {{ m.prenom }} {{ m.nom }}
+          </h3>
+
+          <p class="grade">
+            {{ m.grade || 'Médecin' }}
+          </p>
+
+          <span class="role-badge">
+          Bureau exécutif
+        </span>
+
+        </div>
+
+      </div>
+
     </section>
 
     <!-- VALEURS -->
-    <section>
-      <h2 class="text-2xl font-semibold text-gray-900 mb-4">Nos valeurs</h2>
+    <section class="bg-white p-8 rounded-2xl shadow-sm border text-center">
 
-      <div class="grid md:grid-cols-3 gap-4 text-center">
-        <div class="bg-white p-4 rounded-lg shadow-sm">
-          <p class="font-semibold">Excellence</p>
-          <p class="text-sm text-gray-600">Qualité et rigueur professionnelle</p>
-        </div>
+      <h2 class="text-3xl font-semibold mb-4">
+        Nos valeurs
+      </h2>
 
-        <div class="bg-white p-4 rounded-lg shadow-sm">
-          <p class="font-semibold">Collaboration</p>
-          <p class="text-sm text-gray-600">Travail en équipe et partage</p>
-        </div>
-
-        <div class="bg-white p-4 rounded-lg shadow-sm">
-          <p class="font-semibold">Éthique</p>
-          <p class="text-sm text-gray-600">Respect et responsabilité</p>
-        </div>
-
-        <div class="bg-white p-4 rounded-lg shadow-sm">
-          <p class="font-semibold">Innovation</p>
-          <p class="text-sm text-gray-600">Amélioration continue</p>
-        </div>
-
-        <div class="bg-white p-4 rounded-lg shadow-sm">
-          <p class="font-semibold">Engagement</p>
-          <p class="text-sm text-gray-600">Au service du patient</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- COMMUNAUTE -->
-    <section class="bg-white p-6 rounded-xl shadow-sm">
-      <h2 class="text-2xl font-semibold text-gray-900 mb-4">Notre communauté</h2>
-
-      <p class="text-gray-700 leading-relaxed">
-        Notre association regroupe des médecins, des professionnels de santé,
-        des chercheurs et des acteurs du secteur médical. Ensemble, nous formons
-        une communauté dynamique et engagée, tournée vers l’avenir et le progrès
-        du système de santé.
+      <p class="text-gray-600 leading-relaxed">
+        Excellence • Éthique • Innovation • Collaboration • Engagement
       </p>
+
     </section>
 
   </div>
 </template>
+
+<style scoped>
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  text-align: center;
+  transition: 0.3s;
+}
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+.title {
+  font-weight: 600;
+  color: #111;
+}
+.desc {
+  font-size: 14px;
+  color: #666;
+  margin-top: 8px;
+}
+
+/* USER CARD */
+.user-card {
+  background: white;
+  padding: 25px;
+  border-radius: 16px;
+  border: 1px solid #eee;
+  text-align: center;
+  transition: 0.3s;
+}
+.user-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.08);
+}
+
+.avatar {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: auto;
+  border: 3px solid #f1f1f1;
+}
+
+.fallback {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#ddd;
+  font-weight:bold;
+  font-size:20px;
+}
+
+.name {
+  margin-top: 15px;
+  font-weight: 600;
+  color: #111;
+}
+
+.grade {
+  font-size: 14px;
+  color: #666;
+  margin-top: 5px;
+}
+
+.role-badge {
+  display: inline-block;
+  margin-top: 10px;
+  background: #2563eb;
+  color: white;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+</style>

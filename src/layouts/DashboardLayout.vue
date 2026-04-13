@@ -50,7 +50,7 @@ function handleLogout() {
         <!-- LOGO -->
         <div class="flex items-center gap-3 px-6 py-5 border-b border-gray-100">
           <div class="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
-            <span class="text-white font-bold">AM</span>
+            <span class="text-white font-bold"> AMB </span>
           </div>
           <span class="text-lg font-bold text-gray-900">
             Association Médicale Ben Guerdane

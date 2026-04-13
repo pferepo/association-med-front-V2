@@ -16,6 +16,14 @@ export const userService = {
     const response = await api.get(`/users/${id}`)
     return response.data
   },
+  async getBureauMembers() {
+    const response = await api.get('/users/users?role=MEMBRE_BUREAU_EXECUTIF')
+    return response.data
+  },
+  async getCompteAppli() {
+    const response = await api.get('/users/compte-appli')
+    return response.data
+  },
 
   async create(userData) {
     const response = await api.post('/users/register', userData)

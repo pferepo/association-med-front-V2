@@ -103,17 +103,40 @@ async function submitParticipation() {
 <template>
   <div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
 
-    <!-- HEADER -->
     <header class="bg-white/80 backdrop-blur border-b sticky top-0 z-50">
       <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+
+        <!-- LOGO -->
         <img src="@/assets/logo.png" class="h-10" />
 
+        <!-- NAVIGATION -->
+        <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-700">
+
+
+          <router-link
+              to="/about"
+              class="hover:text-blue-600 transition"
+          >
+            Qui sommes-nous ?
+          </router-link>
+
+          <router-link
+              to="/contact"
+              class="hover:text-blue-600 transition"
+          >
+            Contactez-Nous !
+          </router-link>
+
+        </nav>
+
+        <!-- LOGIN -->
         <button
             @click="goToLogin"
             class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
         >
           Se connecter
         </button>
+
       </div>
     </header>
 
