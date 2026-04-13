@@ -43,60 +43,25 @@ const goBack = () => {
     <!-- HERO -->
     <section class="text-center space-y-6">
 
-      <img src="@/assets/logo.png"
-           class="w-40 h-40 mx-auto object-contain drop-shadow-md"/>
 
       <h1 class="text-4xl md:text-5xl font-bold text-gray-900">
         Qui sommes-nous ?
       </h1>
 
       <p class="text-gray-600 text-lg max-w-3xl mx-auto leading-relaxed">
-        Une association médicale engagée dans la formation, la collaboration
-        et l’innovation, au service des professionnels de santé.
+       Une association médicale engagée dans la formation, la collaboration et l’innovation, au service de la communauté et de la santé publique.
       </p>
 
     </section>
 
-    <!-- INTRO -->
-    <section class="bg-white p-8 rounded-2xl shadow-sm border text-center">
-      <p class="text-gray-700 leading-relaxed text-lg">
-        L’Association Médicale Ben Guerdane rassemble des professionnels de santé
-        autour d’une vision commune : promouvoir l’excellence médicale,
-        encourager la formation continue et améliorer la qualité des soins.
-      </p>
-    </section>
+   
 
-    <!-- ACTIVITES -->
-    <section class="space-y-6">
-      <h2 class="text-3xl font-semibold text-center text-gray-900">
-        Nos activités
-      </h2>
-
-      <div class="grid md:grid-cols-3 gap-6">
-
-        <div class="card">
-          <p class="title">Formations</p>
-          <p class="desc">Ateliers pratiques et formations continues</p>
-        </div>
-
-        <div class="card">
-          <p class="title">Conférences</p>
-          <p class="desc">Événements scientifiques et échanges</p>
-        </div>
-
-        <div class="card">
-          <p class="title">Collaborations</p>
-          <p class="desc">Travail entre professionnels de santé</p>
-        </div>
-
-      </div>
-    </section>
-
+    
     <!-- EQUIPE -->
     <section class="space-y-10">
 
       <h2 class="text-3xl font-semibold text-center text-gray-900">
-        Bureau Exécutif
+        Bureau de l'Assocition Médicale de Ben Guerdane
       </h2>
 
       <div v-if="loading" class="text-center text-gray-500">
@@ -137,19 +102,7 @@ const goBack = () => {
 
     </section>
 
-    <!-- VALEURS -->
-    <section class="bg-white p-8 rounded-2xl shadow-sm border text-center">
-
-      <h2 class="text-3xl font-semibold mb-4">
-        Nos valeurs
-      </h2>
-
-      <p class="text-gray-600 leading-relaxed">
-        Excellence • Éthique • Innovation • Collaboration • Engagement
-      </p>
-
-    </section>
-
+   
   </div>
 </template>
 
