@@ -1,14 +1,11 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import authService from "@/services/authService.js";
-import userService from "@/services/userService.js";
+import userService from "@/services/userService.js"
 
 const router = useRouter()
-const authStore = useAuthStore()
 
-const step = ref(1) // 1 = email, 2 = reset
+const step = ref(1)
 
 const email = ref('')
 const code = ref('')
@@ -36,7 +33,7 @@ watch(newPassword, (v) => {
 })
 
 const isStep1Valid = computed(() => !emailError.value && email.value)
-const isStep2Valid = computed(() => code.value && !passwordError.value)
+const isStep2Valid = computed(() => code.value && !passwordError.value && newPassword.value)
 
 async function sendCode() {
   if (!isStep1Valid.value) return
@@ -69,12 +66,10 @@ async function resetPassword() {
 
     success.value = true
 
-    // 🔥 reset UI
     email.value = ''
     code.value = ''
     newPassword.value = ''
 
-    // 🔥 redirect login
     setTimeout(() => {
       router.push('/login')
     }, 1200)
@@ -85,86 +80,115 @@ async function resetPassword() {
     loading.value = false
   }
 }
+
+function goHome() {
+  router.push('/')
+}
 </script>
 
 <template>
   <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-    <div class="w-full max-w-md bg-white shadow-xl rounded-2xl p-6">
 
-      <h2 class="text-2xl font-bold text-center mb-6">
-        Mot de passe oublié
-      </h2>
+    <div class="w-full max-w-md">
 
-      <!-- STEP 1 -->
-      <div v-if="step === 1">
-
-        <p class="text-sm text-gray-500 text-center mb-4">
-          Entrez votre email pour recevoir un code
-        </p>
-
-        <div v-if="error" class="p-3 bg-red-50 text-red-600 rounded text-sm">
-          {{ error }}
-        </div>
-
-        <input
-            v-model="email"
-            placeholder="email@mail.com"
-            class="w-full px-4 py-2 border rounded-lg"
-        />
-
-        <p v-if="emailError" class="text-red-500 text-xs">
-          {{ emailError }}
-        </p>
+      <!-- HEADER -->
+      <div class="flex items-center justify-between mb-6">
 
         <button
-            @click="sendCode"
-            :disabled="loading || !isStep1Valid"
-            class="w-full bg-primary-600 text-white py-2 rounded-lg mt-4"
+            @click="goHome"
+            class="text-sm text-gray-600 hover:text-blue-600 transition"
         >
-          {{ loading ? 'Envoi...' : 'Envoyer le code' }}
+          ← Accueil
         </button>
+
+        <img
+            src="@/assets/logo.png"
+            class="h-14 object-contain"
+        />
+
+        <div class="w-16"></div>
 
       </div>
 
-      <!-- STEP 2 -->
-      <div v-else>
+      <!-- CARD -->
+      <div class="bg-white shadow-xl rounded-2xl p-6">
 
-        <p class="text-sm text-gray-500 text-center mb-4">
-          Entrez le code reçu par email
-        </p>
+        <h2 class="text-2xl font-bold text-center mb-6">
+          Mot de passe oublié
+        </h2>
 
-        <div v-if="error" class="p-3 bg-red-50 text-red-600 rounded text-sm">
-          {{ error }}
+        <!-- STEP 1 -->
+        <div v-if="step === 1" class="space-y-4">
+
+          <p class="text-sm text-gray-500 text-center">
+            Entrez votre email pour recevoir un code
+          </p>
+
+          <div v-if="error" class="p-3 bg-red-50 text-red-600 rounded text-sm">
+            {{ error }}
+          </div>
+
+          <input
+              v-model="email"
+              placeholder="email@mail.com"
+              class="w-full px-4 py-2 border rounded-lg focus:ring outline-none"
+          />
+
+          <p v-if="emailError" class="text-red-500 text-xs">
+            {{ emailError }}
+          </p>
+
+          <button
+              @click="sendCode"
+              :disabled="loading || !isStep1Valid"
+              class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+          >
+            {{ loading ? 'Envoi...' : 'Envoyer le code' }}
+          </button>
+
         </div>
 
-        <div v-if="success" class="p-3 bg-green-50 text-green-600 rounded text-sm">
-          Mot de passe modifié avec succès
+        <!-- STEP 2 -->
+        <div v-else class="space-y-4">
+
+          <p class="text-sm text-gray-500 text-center">
+            Entrez le code reçu par email
+          </p>
+
+          <div v-if="error" class="p-3 bg-red-50 text-red-600 rounded text-sm">
+            {{ error }}
+          </div>
+
+          <div v-if="success" class="p-3 bg-green-50 text-green-600 rounded text-sm">
+            Mot de passe modifié avec succès
+          </div>
+
+          <input
+              v-model="code"
+              placeholder="Code à 6 chiffres"
+              class="w-full px-4 py-2 border rounded-lg focus:ring outline-none"
+          />
+
+          <input
+              v-model="newPassword"
+              type="password"
+              placeholder="Nouveau mot de passe"
+              class="w-full px-4 py-2 border rounded-lg focus:ring outline-none"
+          />
+
+          <p v-if="passwordError" class="text-red-500 text-xs">
+            {{ passwordError }}
+          </p>
+
+          <button
+              @click="resetPassword"
+              :disabled="loading || !isStep2Valid"
+              class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+          >
+            {{ loading ? 'Validation...' : 'Confirmer' }}
+          </button>
+
         </div>
-
-        <input
-            v-model="code"
-            placeholder="Code à 6 chiffres"
-            class="w-full px-4 py-2 border rounded-lg mb-2"
-        />
-
-        <input
-            v-model="newPassword"
-            type="password"
-            placeholder="Nouveau mot de passe"
-            class="w-full px-4 py-2 border rounded-lg"
-        />
-
-        <p v-if="passwordError" class="text-red-500 text-xs">
-          {{ passwordError }}
-        </p>
-
-        <button
-            @click="resetPassword"
-            :disabled="loading || !isStep2Valid"
-            class="w-full bg-primary-600 text-white py-2 rounded-lg mt-4"
-        >
-          {{ loading ? 'Validation...' : 'Confirmer' }}
-        </button>
 
       </div>
 

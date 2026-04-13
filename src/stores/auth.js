@@ -10,8 +10,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!token.value)
   const isAdmin = computed(() => user.value?.role === 'ADMIN')
-  const isMembre = computed(() => user.value?.role === 'MEMBRE')
-  const isInvite = computed(() => user.value?.role === 'INVITE')
+  const isMembre = computed(() => user.value?.role === 'MEMBRE_BUREAU_EXECUTIF')
+  const isInvite = computed(() => user.value?.role === 'MEMBRE_INVITE')
   const userRole = computed(() => user.value?.role)
   const userName = computed(() => {
     if (user.value) {

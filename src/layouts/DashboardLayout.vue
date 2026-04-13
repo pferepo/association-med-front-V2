@@ -12,53 +12,17 @@ const sidebarOpen = ref(false)
 const isAdmin = computed(() => authStore.isAdmin)
 const basePath = computed(() => isAdmin.value ? '/admin' : '/membre')
 
-/**
- * 🔥 NAVIGATION PRO (ROLE-BASED CLEAN)
- */
 const navigation = computed(() => {
   const items = [
-    {
-      name: 'Dashboard',
-      path: basePath.value,
-      icon: 'dashboard',
-      roles: ['ADMIN', 'MEMBRE']
-    },
-    {
-      name: 'Activités',
-      path: `${basePath.value}/activites`,
-      icon: 'activities',
-      roles: ['ADMIN', 'MEMBRE']
-    },
-    {
-      name: 'Votes',
-      path: `${basePath.value}/votes`,
-      icon: 'votes',
-      roles: ['ADMIN', 'MEMBRE']
-    },
-    {
-      name: 'Participations',
-      path: `${basePath.value}/participations`,
-      icon: 'participations',
-      roles: ['ADMIN', 'MEMBRE']
-    },
-    {
-      name: 'Utilisateurs',
-      path: '/admin/users',
-      icon: 'users',
-      roles: ['ADMIN']
-    },
-    {
-      name: 'Historique',
-      path: `${basePath.value}/historique`,
-      icon: 'history',
-      roles: ['ADMIN']
-    }
+    { name: 'Dashboard', path: basePath.value, icon: 'dashboard', roles: ['ADMIN', 'MEMBRE_BUREAU_EXECUTIF'] },
+    { name: 'Activités', path: `${basePath.value}/activites`, icon: 'activities', roles: ['ADMIN', 'MEMBRE_BUREAU_EXECUTIF'] },
+    { name: 'Votes', path: `${basePath.value}/votes`, icon: 'votes', roles: ['ADMIN', 'MEMBRE_BUREAU_EXECUTIF'] },
+    { name: 'Participations', path: `${basePath.value}/participations`, icon: 'participations', roles: ['ADMIN', 'MEMBRE_BUREAU_EXECUTIF'] },
+    { name: 'Utilisateurs', path: '/admin/users', icon: 'users', roles: ['ADMIN'] },
+    { name: 'Historique', path: `${basePath.value}/historique`, icon: 'history', roles: ['ADMIN'] }
   ]
 
-  // 🔥 filtre par rôle
-  return items.filter(item =>
-      item.roles.includes(authStore.userRole)
-  )
+  return items.filter(item => item.roles.includes(authStore.userRole))
 })
 
 function isActive(path) {
@@ -74,13 +38,6 @@ function handleLogout() {
 <template>
   <div class="min-h-screen bg-gray-50">
 
-    <!-- Mobile backdrop -->
-    <div
-        v-if="sidebarOpen"
-        class="fixed inset-0 bg-gray-900/50 z-40 lg:hidden"
-        @click="sidebarOpen = false"
-    ></div>
-
     <!-- SIDEBAR -->
     <aside
         :class="[
@@ -93,20 +50,15 @@ function handleLogout() {
         <!-- LOGO -->
         <div class="flex items-center gap-3 px-6 py-5 border-b border-gray-100">
           <div class="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
+            <span class="text-white font-bold">AM</span>
           </div>
-
           <span class="text-lg font-bold text-gray-900">
-            Association Médicale Ben Gardane
+            Association Médicale Ben Guerdane
           </span>
         </div>
 
         <!-- NAV -->
         <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-
           <router-link
               v-for="item in navigation"
               :key="item.path"
@@ -117,65 +69,15 @@ function handleLogout() {
                 ? 'bg-primary-50 text-primary-700'
                 : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
             ]"
-              @click="sidebarOpen = false"
           >
-
-            <!-- icons -->
-            <svg v-if="item.icon === 'dashboard'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-
-            <svg v-else-if="item.icon === 'users'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-
-            <svg v-else-if="item.icon === 'activities'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-
-            <svg v-else-if="item.icon === 'votes'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-
-            <svg v-else-if="item.icon === 'history'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 8v4l3 3m6-3a9 9 0 11-9-9 9 9 0 019 9z" />
-            </svg>
-
-            <svg v-else-if="item.icon === 'participations'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-
             {{ item.name }}
-
           </router-link>
-
         </nav>
 
         <!-- USER -->
         <div class="px-4 py-4 border-t border-gray-100">
-          <div class="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg">
-
-            <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-              <span class="text-primary-700 font-semibold">
-                {{ authStore.userName?.charAt(0) || 'U' }}
-              </span>
-            </div>
-
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-gray-900 truncate">
-                {{ authStore.userName || 'Utilisateur' }}
-              </p>
-              <p class="text-xs text-gray-500">
-                {{ authStore.userRole }}
-              </p>
-            </div>
-
+          <div class="text-sm text-gray-700">
+            {{ authStore.userName }}
           </div>
         </div>
 
@@ -185,55 +87,46 @@ function handleLogout() {
     <!-- MAIN -->
     <div class="lg:pl-64">
 
-      <!-- TOP BAR -->
+      <!-- HEADER -->
       <header class="sticky top-0 z-30 bg-white border-b border-gray-200">
+        <div class="flex items-center justify-between px-6 h-16">
 
-        <div class="flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
+          <!-- LEFT -->
+          <div class="flex items-center gap-4">
+            <button @click="sidebarOpen = true" class="lg:hidden">☰</button>
 
-          <button
-              @click="sidebarOpen = true"
-              class="lg:hidden p-2 -ml-2 text-gray-500 hover:text-gray-700"
-          >
-            ☰
-          </button>
+            <!-- 🔥 LIENS PRO -->
+            <nav class="hidden md:flex items-center gap-6">
+              <router-link
+                  to="/about"
+                  class="text-sm font-medium text-gray-600 hover:text-primary-600 transition"
+              >
+                Qui sommes-nous ?
+              </router-link>
 
-          <!-- TITLE ADMIN ONLY -->
-          <div class="hidden lg:block">
-            <h1
-                v-if="isAdmin"
-                class="text-lg font-semibold text-gray-900"
-            >
-              Administration
-            </h1>
+              <router-link
+                  to="/contact"
+                  class="text-sm font-medium text-gray-600 hover:text-primary-600 transition"
+              >
+                Contactez-nous
+              </router-link>
+            </nav>
           </div>
 
-          <!-- USER -->
+          <!-- RIGHT -->
           <div class="flex items-center gap-4">
+            <span class="text-sm">{{ authStore.userName }}</span>
 
-            <div class="hidden sm:block text-right">
-              <p class="text-sm font-medium text-gray-900">
-                {{ authStore.userName }}
-              </p>
-              <p class="text-xs text-gray-500">
-                {{ authStore.userRole }}
-              </p>
-            </div>
-
-            <button
-                @click="handleLogout"
-                class="btn btn-secondary text-sm"
-            >
+            <button @click="handleLogout" class="text-sm text-red-500 hover:underline">
               Déconnexion
             </button>
-
           </div>
 
         </div>
-
       </header>
 
       <!-- CONTENT -->
-      <main class="p-4 sm:p-6 lg:p-8">
+      <main class="p-6">
         <RouterView />
       </main>
 
