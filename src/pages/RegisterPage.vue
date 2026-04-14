@@ -12,6 +12,7 @@ const password = ref('')
 const confirmPassword = ref('')
 const tel = ref('')
 const grade = ref('')
+const cin = ref('')
 
 const role = ref('MEMBRE_INVITE')
 const genre = ref('MALE')
@@ -27,6 +28,7 @@ const passwordError = ref('')
 const confirmPasswordError = ref('')
 const telError = ref('')
 const gradeError = ref('')
+const cinError = ref('')
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -73,6 +75,10 @@ watch(grade, v => {
   gradeError.value = !v ? 'Grade requis' : ''
 })
 
+watch(cin, v => {
+  cinError.value = !v ? 'CIN requis' : ''
+})
+
 /* =======================
    FORM VALID
 ======================= */
@@ -85,13 +91,15 @@ const isFormValid = computed(() => {
       !confirmPasswordError.value &&
       !telError.value &&
       !gradeError.value &&
+      !cinError.value &&
       nom.value &&
       prenom.value &&
       email.value &&
       password.value &&
       confirmPassword.value &&
       tel.value &&
-      grade.value
+      grade.value &&
+      cin.value
   )
 })
 
@@ -114,6 +122,7 @@ async function handleRegister() {
       role: role.value,
       tel: tel.value,
       grade: grade.value,
+      cin: cin.value,
       active: false
     })
 
@@ -218,6 +227,13 @@ const gradesList = [
                    class="w-full px-4 py-2 border rounded-lg focus:ring outline-none" />
             <p v-if="telError" class="text-red-500 text-xs">{{ telError }}</p>
           </div>
+          <!-- CIN -->
+          <div>
+            <input v-model="cin" placeholder="CIN"
+                   class="w-full px-4 py-2 border rounded-lg focus:ring outline-none" />
+            <p v-if="cinError" class="text-red-500 text-xs">{{ cinError }}</p>
+          </div>
+
 
           <!-- GRADE -->
           <div>

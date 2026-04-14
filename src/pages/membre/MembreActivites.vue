@@ -41,6 +41,8 @@ async function saveActivity() {
     resetForm()
     await fetchActivities()
   } catch (err) {
+      console.error(err.response)
+      console.error(err.response?.data)
     error.value = err.response?.data?.message || 'Erreur lors de la proposition'
   } finally {
     saving.value = false
@@ -93,7 +95,7 @@ function getStatusColor(statut) {
   }[statut] || 'badge-gray'
 }
 
-// 🔥 COULEUR CARTE SELON statutProposition
+// COULEUR CARTE SELON statutProposition
 function getCardColor(activity) {
   switch (activity.statutProposition) {
     case 'PROPOSITION':
@@ -109,7 +111,7 @@ function getCardColor(activity) {
   }
 }
 
-// 🔥 COULEUR BADGE STATUT PROPOSITION
+// COULEUR BADGE STATUT PROPOSITION
 function getStatutPropositionColor(statutProposition) {
   switch (statutProposition) {
     case 'PROPOSITION':

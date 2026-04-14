@@ -38,6 +38,7 @@ const form = ref({
   password: '',
   confirmPassword: '',
   tel: '',
+  cin: '',
   grade: '',
   genre: 'MALE',
   role: 'MEMBRE_INVITE',
@@ -81,6 +82,9 @@ function validate() {
 
   if (!form.value.grade)
     e.grade = "Grade obligatoire"
+
+  if (!form.value.cin)
+    e.cin = "CIN obligatoire"
 
   if (!form.value.role)
     e.role = "Rôle obligatoire"
@@ -167,6 +171,7 @@ function resetForm() {
     password: '',
     confirmPassword: '',
     tel: '',
+    cin: '',
     grade: '',
     genre: 'MALE',
     role: 'MEMBRE_INVITE',
@@ -297,6 +302,7 @@ onMounted(fetchUsers)
         </template>
 
         <input v-model="form.tel" class="input" placeholder="Téléphone"/>
+        <input v-model="form.cin" class="input" placeholder="cin"/>
 
         <select v-model="form.grade" class="input">
           <option disabled value="">Grade</option>

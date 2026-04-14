@@ -11,6 +11,10 @@ export const userService = {
     const response = await api.get('/users/emails')
     return response.data
   },
+  async getAllEmailsBureau() {
+    const response = await api.get('/users/emails/bureau')
+    return response.data
+  },
 
   async getById(id) {
     const response = await api.get(`/users/${id}`)

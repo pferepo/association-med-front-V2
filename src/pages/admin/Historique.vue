@@ -9,57 +9,58 @@ const historiques = ref([])
 const loading = ref(true)
 const error = ref(false)
 
-// caches (évite appels multiples)
+// =====================
+// CACHE
+// =====================
 const usersCache = {}
 const activitesCache = {}
 const votesCache = {}
 
 // =====================
-// SAFE FETCH USER
+// FETCH USER
 // =====================
 async function getUser(id) {
-  if (!id) return 'Système'
+  if (!id) return null
   if (usersCache[id]) return usersCache[id]
 
   try {
     const u = await userService.getById(id)
-    const fullName = `${u.prenom} ${u.nom}`
-    usersCache[id] = fullName
-    return fullName
+    usersCache[id] = u
+    return u
   } catch {
-    return 'Utilisateur inconnu'
+    return null
   }
 }
 
 // =====================
-// SAFE FETCH ACTIVITE
+// FETCH ACTIVITE
 // =====================
 async function getActivite(id) {
-  if (!id) return ''
+  if (!id) return null
   if (activitesCache[id]) return activitesCache[id]
 
   try {
     const a = await activityService.getById(id)
-    activitesCache[id] = a.titre
-    return a.titre
+    activitesCache[id] = a
+    return a
   } catch {
-    return 'Activité'
+    return null
   }
 }
 
 // =====================
-// SAFE FETCH VOTE
+// FETCH VOTE
 // =====================
 async function getVote(id) {
-  if (!id) return ''
+  if (!id) return null
   if (votesCache[id]) return votesCache[id]
 
   try {
     const v = await voteService.getById(id)
-    votesCache[id] = v.description
-    return v.description
+    votesCache[id] = v
+    return v
   } catch {
-    return 'Vote'
+    return null
   }
 }
 
@@ -78,26 +79,28 @@ function getBadge(action) {
 }
 
 // =====================
-// ENRICH DATA SAFE
+// ENRICH DATA
 // =====================
 async function enrich(data) {
   try {
     const enriched = await Promise.all(
         data.map(async (h) => {
-          let entityLabel = h.entityName
+          const user = await getUser(h.idUser)
+
+          let activite = null
+          let vote = null
 
           if (h.entityName === 'ACTIVITE') {
-            entityLabel = await getActivite(h.entityId)
+            activite = await getActivite(h.entityId)
           } else if (h.entityName === 'VOTE') {
-            entityLabel = await getVote(h.entityId)
+            vote = await getVote(h.entityId)
           }
-
-          const userName = await getUser(h.idUser)
 
           return {
             ...h,
-            userName,
-            entityLabel
+            user,
+            activite,
+            vote
           }
         })
     )
@@ -140,7 +143,7 @@ onMounted(fetchHistorique)
 <template>
   <div class="p-6">
 
-    <!-- TITLE -->
+    <!-- HEADER -->
     <h1 class="text-2xl font-bold mb-6">
       Historique des actions
     </h1>
@@ -161,20 +164,19 @@ onMounted(fetchHistorique)
     </div>
 
     <!-- LIST -->
-    <div v-else class="space-y-3">
+    <div v-else class="space-y-4">
 
       <div
           v-for="h in historiques"
           :key="h.id"
-          class="p-4 border rounded-lg bg-white hover:shadow-md transition"
+          class="p-4 border rounded-xl bg-white shadow-sm hover:shadow-md transition"
       >
-
-        <div class="flex justify-between">
+        <div class="flex justify-between gap-4">
 
           <!-- LEFT -->
-          <div class="space-y-1">
+          <div class="space-y-3 flex-1">
 
-            <!-- ACTION BADGE -->
+            <!-- BADGE -->
             <span
                 class="text-xs px-2 py-1 rounded font-medium"
                 :class="getBadge(h.action)"
@@ -184,32 +186,71 @@ onMounted(fetchHistorique)
 
             <!-- USER -->
             <div class="text-sm text-gray-700">
-              👤 {{ h.userName }}
-            </div>
-
-            <!-- ENTITY -->
-            <div class="text-sm text-gray-700">
-              📌 {{ h.entityName }} :
-              <span class="font-semibold text-gray-900">
-                {{ h.entityLabel }}
+              👤
+              <span v-if="h.user">
+                {{ h.user.prenom }} {{ h.user.nom }}
+              </span>
+              <span v-else>
+                Système
               </span>
             </div>
 
+            <!-- ACTIVITE -->
+            <div v-if="h.activite" class="bg-green-50 p-3 rounded border">
+              <div class="font-semibold text-green-800 mb-1">
+                📌 Activité
+              </div>
+
+              <div class="text-sm space-y-1">
+                <div><b>Titre:</b> {{ h.activite.titre }}</div>
+                <div><b>Description:</b> {{ h.activite.description }}</div>
+                <div><b>Type:</b> {{ h.activite.type }}</div>
+                <div><b>Statut:</b> {{ h.activite.statut }}</div>
+                <div><b>Proposition:</b> {{ h.activite.statutProposition }}</div>
+
+                <div v-if="h.activite.membre?.length">
+                  <b>Membres:</b>
+                  <span
+                      v-for="(m,i) in h.activite.membre"
+                      :key="i"
+                  >
+                    {{ m }}<span v-if="i < h.activite.membre.length - 1">, </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- VOTE -->
+            <div v-if="h.vote" class="bg-blue-50 p-3 rounded border">
+              <div class="font-semibold text-blue-800 mb-1">
+                🗳️ Vote
+              </div>
+
+              <div class="text-sm space-y-1">
+                <div><b>Description:</b> {{ h.vote.description }}</div>
+                <div><b>Statut:</b> {{ h.vote.statut }}</div>
+                <div>
+                  <b>Date:</b>
+                  {{ new Date(h.vote.dateCreation).toLocaleString('fr-FR') }}
+                </div>
+              </div>
+            </div>
+
             <!-- DESCRIPTION -->
-            <div class="text-sm text-gray-500">
+            <div class="whitespace-pre-line text-sm text-gray-700">
               {{ h.description }}
             </div>
 
           </div>
 
-          <!-- RIGHT -->
+          <!-- DATE -->
           <div class="text-xs text-gray-400 whitespace-nowrap">
             {{ new Date(h.dateAction).toLocaleString('fr-FR') }}
           </div>
 
         </div>
-
       </div>
+
     </div>
 
   </div>

@@ -15,9 +15,8 @@ const form = ref({
   membre: [],
   statut: 'EN_ATTENTE',
   statutProposition: 'SANS_VOTE',
-  envoyerATous: false,
+  modeEnvoi: 'MEMBRES', // ✅ NEW
 
-  // SAFE
   dateLimiteVote: ''
 })
 
@@ -26,23 +25,30 @@ const saving = ref(false)
 const error = ref(null)
 
 /* =========================
-   AUTO EMAILS
+   MODE ENVOI (RADIO LOGIC)
 ========================= */
-watch(() => form.value.envoyerATous, async (val) => {
-  if (val) {
+watch(() => form.value.modeEnvoi, async (val) => {
+  if (val === 'ABONNES') {
     try {
       const emails = await userService.getAllEmails()
       form.value.membre = emails
     } catch (e) {
       console.error(e)
     }
-  } else {
-    form.value.membre = []
   }
+
+  if (val === 'MEMBRES') {
+    try {
+      const emailsB = await userService.getAllEmailsBureau()
+      form.value.membre = emailsB
+    } catch (e) {
+      console.error(e)
+    }
+    }
 })
 
 /* =========================
-   AUTO DATE +1 JOUR POUR VOTE
+   AUTO DATE VOTE
 ========================= */
 watch(() => form.value.statutProposition, (val) => {
   if (val === 'POUR_VOTE') {
@@ -70,6 +76,10 @@ async function fetchActivities() {
   }
 }
 
+function clearEmails() {
+  form.value.membre = []
+}
+
 /* =========================
    SAVE
 ========================= */
@@ -81,7 +91,7 @@ async function saveActivity() {
     const payload = {
       ...form.value,
       dateLimiteVote:
-          form.value.statutProposition === 'POUR_VOTE' && form.value.dateLimiteVote
+          form.value.statutProposition === 'POUR_VOTE'
               ? form.value.dateLimiteVote
               : null
     }
@@ -125,7 +135,7 @@ function editActivity(activity) {
     membre: activity.membre || [],
     statut: activity.statut,
     statutProposition: activity.statutProposition,
-    envoyerATous: false,
+    modeEnvoi: 'MEMBRES',
 
     dateLimiteVote: activity.dateLimiteVote
         ? activity.dateLimiteVote.substring(0, 16)
@@ -148,7 +158,7 @@ function resetForm() {
     membre: [],
     statut: 'EN_ATTENTE',
     statutProposition: 'SANS_VOTE',
-    envoyerATous: false,
+    modeEnvoi: 'MEMBRES',
     dateLimiteVote: ''
   }
 
@@ -249,7 +259,6 @@ onMounted(fetchActivities)
         <h3 class="font-semibold mb-2">{{ activity.titre }}</h3>
         <p class="text-sm text-gray-600 mb-3">{{ activity.description }}</p>
 
-        <!-- DATE VOTE -->
         <div v-if="activity.dateLimiteVote" class="text-xs text-gray-500 mb-2">
           Vote jusqu’au : {{ activity.dateLimiteVote }}
         </div>
@@ -300,29 +309,58 @@ onMounted(fetchActivities)
             <option value="PROPOSITION">Proposition</option>
           </select>
 
-          <!-- DATE LIMITE -->
+          <!-- DATE -->
           <div v-if="form.statutProposition === 'POUR_VOTE'">
             <label class="text-sm text-gray-600">Date limite de vote</label>
-            <input
-                type="datetime-local"
-                v-model="form.dateLimiteVote"
-                class="form-input"
-            />
+            <input type="datetime-local" v-model="form.dateLimiteVote" class="form-input" />
+          </div>
+
+          <!-- MODE ENVOI -->
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-gray-700">Mode d’envoi</label>
+
+            <label class="flex items-center gap-2">
+              <input type="radio" value="ABONNES" v-model="form.modeEnvoi" />
+              Envoyer à tous les abonnés
+            </label>
+
+            <label class="flex items-center gap-2">
+              <input type="radio" value="MEMBRES" v-model="form.modeEnvoi" />
+              Envoyer au membre de bureau
+            </label>
           </div>
 
           <!-- MEMBRES -->
           <div>
             <input
                 v-model="membreInput"
-                :disabled="form.envoyerATous"
+                :disabled="form.modeEnvoi === 'ABONNES'"
                 class="form-input"
                 placeholder="Email membre"
                 @keyup.enter.prevent="addMembre"
             />
 
-            <button type="button" @click="addMembre" :disabled="form.envoyerATous">
-              Ajouter
-            </button>
+            <div class="flex items-center gap-2 mt-2">
+
+              <button
+                  type="button"
+                  @click="addMembre"
+                  :disabled="form.modeEnvoi === 'ABONNES'"
+                  class="text-xs px-3 py-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 disabled:opacity-50"
+              >
+                ➕ Ajouter
+              </button>
+
+              <button
+                  type="button"
+                  @click="clearEmails"
+                  class="text-xs px-3 py-1 bg-red-50 text-red-600 rounded hover:bg-red-100"
+                  v-if="form.membre.length > 0"
+              >
+                🗑 Vider les emails
+              </button>
+
+            </div>
 
             <div class="flex flex-wrap gap-2 mt-2">
               <span
@@ -336,12 +374,7 @@ onMounted(fetchActivities)
             </div>
           </div>
 
-          <!-- ALL USERS -->
-          <label class="flex gap-2 items-center">
-            <input type="checkbox" v-model="form.envoyerATous" />
-            Informer tous les abonnés
-          </label>
-
+          <!-- ACTIONS -->
           <div class="flex gap-2">
             <button type="button" @click="showModal=false" class="btn btn-secondary flex-1">
               Annuler
