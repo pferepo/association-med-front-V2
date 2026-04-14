@@ -139,7 +139,7 @@ onMounted(fetchData)
             {{ vote.statut }}
           </span>
 
-          <span class="text-sm text-gray-500">#{{ vote.id }}</span>
+          <span class="text-sm text-gray-500">{{ vote.description }}</span>
         </div>
 
         <!-- TITLE -->

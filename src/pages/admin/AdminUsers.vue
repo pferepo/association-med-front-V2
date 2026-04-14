@@ -305,9 +305,11 @@ onMounted(fetchUsers)
         <input v-model="form.cin" class="input" placeholder="cin"/>
 
         <select v-model="form.grade" class="input">
-          <option disabled value="">Grade</option>
-          <option v-for="g in gradesList" :key="g">{{ g }}</option>
-        </select>
+  <option disabled value="">Grade</option>
+  <option v-for="g in gradesList" :key="g" :value="g">
+    {{ g }}
+  </option>
+</select>
 
         <!-- ROLE -->
         <select v-model="form.role" class="input">
