@@ -80,118 +80,131 @@ function goHome() {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-
+  <div class="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center px-4 py-10">
     <div class="w-full max-w-md">
 
-      <!-- HEADER -->
-      <div class="flex items-center justify-between mb-6">
-
-        <!-- RETOUR ACCUEIL -->
-        <button
-            @click="goHome"
-            class="text-sm text-gray-600 hover:text-primary-600 transition"
-        >
-          ← Accueil
-        </button>
-
-        <!-- LOGO -->
-        <img src="@/assets/logo.png" alt="Logo" class="h-14 object-contain" />
-
-        <div class="w-16"></div>
-
-      </div>
+      <!-- BACK BUTTON -->
+      <button
+          @click="goHome"
+          class="mb-8 inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <span>←</span>
+        <span class="text-sm font-medium">Retour à l&apos;accueil</span>
+      </button>
 
       <!-- CARD -->
-      <div class="bg-white shadow-xl rounded-2xl p-6">
+      <div class="card-lg p-8 space-y-6">
 
-        <h2 class="text-2xl font-bold text-center mb-6">
-          Connexion
-        </h2>
-
-        <form @submit.prevent="handleLogin" class="space-y-5">
-
-          <!-- ERROR -->
-          <div
-              v-if="error"
-              class="p-3 bg-red-50 border border-red-200 text-red-600 rounded text-sm"
-          >
-            {{ error }}
+        <!-- HEADER -->
+        <div class="text-center space-y-2">
+          <div class="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-lg mx-auto flex items-center justify-center shadow-md">
+            <span class="text-xl">🏥</span>
           </div>
+          <h1 class="text-3xl font-bold text-foreground">Connexion</h1>
+          <p class="text-muted-foreground text-sm">Accédez à votre espace professionnel</p>
+        </div>
 
-          <!-- EMAIL -->
+        <!-- ERROR ALERT -->
+        <div
+            v-if="error"
+            class="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm font-medium flex items-start gap-3"
+        >
+          <span>⚠️</span>
+          <span>{{ error }}</span>
+        </div>
+
+        <!-- FORM -->
+        <form @submit.prevent="handleLogin" class="space-y-4">
+
+          <!-- EMAIL INPUT -->
           <div>
-            <label class="text-sm font-medium">Email</label>
+            <label class="block text-sm font-medium text-foreground mb-2">Email</label>
             <input
                 v-model="email"
                 type="email"
-                placeholder="email@mail.com"
-                class="w-full mt-1 px-4 py-2 border rounded-lg focus:ring outline-none"
-                :class="emailError ? 'border-red-500' : email ? 'border-green-500' : ''"
+                placeholder="vous@exemple.com"
+                class="w-full px-4 py-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                :class="emailError ? 'border-red-500 focus:ring-red-200' : ''"
             />
-            <p v-if="emailError" class="text-red-500 text-xs mt-1">
-              {{ emailError }}
+            <p v-if="emailError" class="text-red-600 text-xs mt-1.5 flex items-center gap-1">
+              <span>•</span> {{ emailError }}
             </p>
           </div>
 
-          <!-- PASSWORD -->
+          <!-- PASSWORD INPUT -->
           <div>
-            <label class="text-sm font-medium">Mot de passe</label>
+            <div class="flex items-center justify-between mb-2">
+              <label class="text-sm font-medium text-foreground">Mot de passe</label>
+              <button
+                  type="button"
+                  @click="$router.push('/forgot-password')"
+                  class="text-xs text-primary hover:text-primary/80 font-medium transition-colors"
+              >
+                Oublié ?
+              </button>
+            </div>
 
             <div class="relative">
               <input
                   v-model="password"
                   :type="showPassword ? 'text' : 'password'"
-                  class="w-full mt-1 px-4 py-2 border rounded-lg pr-10 focus:ring outline-none"
-                  :class="passwordError ? 'border-red-500' : password ? 'border-green-500' : ''"
+                  placeholder="Minimum 6 caractères"
+                  class="w-full px-4 py-3 pr-10 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                  :class="passwordError ? 'border-red-500 focus:ring-red-200' : ''"
               />
 
               <button
                   type="button"
                   @click="showPassword = !showPassword"
-                  class="absolute right-3 top-2 text-gray-400"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
               >
-                👁
+                {{ showPassword ? '🙈' : '👁️' }}
               </button>
             </div>
 
-            <p v-if="passwordError" class="text-red-500 text-xs mt-1">
-              {{ passwordError }}
+            <p v-if="passwordError" class="text-red-600 text-xs mt-1.5 flex items-center gap-1">
+              <span>•</span> {{ passwordError }}
             </p>
-
-            <div class="text-right mt-1">
-              <button
-                  type="button"
-                  @click="$router.push('/forgot-password')"
-                  class="text-xs text-primary-600 hover:underline"
-              >
-                Mot de passe oublié ?
-              </button>
-            </div>
           </div>
 
-          <!-- BUTTON -->
+          <!-- SUBMIT BUTTON -->
           <button
               type="submit"
               :disabled="loading || !isFormValid"
-              class="w-full bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700 transition disabled:opacity-50"
+              class="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground py-3 rounded-lg font-semibold hover:shadow-lg hover:opacity-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 mt-6"
           >
-            <span v-if="loading">Connexion...</span>
+            <span v-if="loading" class="flex items-center justify-center gap-2">
+              <span class="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+              Connexion en cours...
+            </span>
             <span v-else>Se connecter</span>
           </button>
 
         </form>
+
+        <!-- DIVIDER -->
+        <div class="flex items-center gap-3">
+          <div class="flex-1 h-px bg-border"></div>
+          <span class="text-xs text-muted-foreground">OU</span>
+          <div class="flex-1 h-px bg-border"></div>
+        </div>
+
+        <!-- REGISTER LINK -->
+        <p class="text-center text-sm text-muted-foreground">
+          Pas encore de compte ?
+          <button
+              @click="$router.push('/register')"
+              class="text-primary font-semibold hover:text-primary/80 transition-colors"
+          >
+            S&apos;enregistrer
+          </button>
+        </p>
+
       </div>
 
-      <!-- REGISTER -->
-      <p class="text-center text-sm text-gray-500 mt-6">
-        Pas de compte ?
-        <button
-            @click="$router.push('/register')"
-            class="text-primary-600 font-medium hover:underline"
-        >
-          Créer un compte
-        </button>
+      <!-- FOOTER -->
+      <p class="text-center text-xs text-muted-foreground mt-6">
+        Association Médicale de Ben Guerdane © 2024
       </p>
 
     </div>

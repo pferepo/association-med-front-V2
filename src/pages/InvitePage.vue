@@ -101,38 +101,37 @@ async function submitParticipation() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50">
+  <div class="min-h-screen bg-background">
 
-    <header class="bg-white/80 backdrop-blur border-b sticky top-0 z-50">
-      <div class="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+    <!-- HEADER -->
+    <header class="sticky top-0 z-50 bg-card border-b border-border shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
 
         <!-- LOGO -->
-        <img src="@/assets/logo.png" class="h-10" />
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center shadow-md">
+            <span class="text-lg font-bold text-white">🏥</span>
+          </div>
+          <div class="hidden sm:block">
+            <p class="text-sm font-bold text-foreground">AMB</p>
+            <p class="text-xs text-muted-foreground leading-none">Médicale</p>
+          </div>
+        </div>
 
-        <!-- NAVIGATION -->
-        <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-700">
-
-
-          <router-link
-              to="/about"
-              class="hover:text-blue-600 transition"
-          >
+        <!-- NAV -->
+        <nav class="hidden md:flex items-center gap-8 text-sm font-medium">
+          <router-link to="/about" class="text-muted-foreground hover:text-primary transition-colors">
             Qui sommes-nous ?
           </router-link>
-
-          <router-link
-              to="/contact"
-              class="hover:text-blue-600 transition"
-          >
-            Contactez-Nous !
+          <router-link to="/contact" class="text-muted-foreground hover:text-primary transition-colors">
+            Contactez-nous
           </router-link>
-
         </nav>
 
-        <!-- LOGIN -->
+        <!-- LOGIN BTN -->
         <button
             @click="goToLogin"
-            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+            class="px-4 py-2 bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-lg font-semibold hover:shadow-lg transition-all"
         >
           Se connecter
         </button>
@@ -140,129 +139,254 @@ async function submitParticipation() {
       </div>
     </header>
 
-    <!-- HERO -->
-    <section class="text-center py-14">
-      <h1 class="text-4xl font-extrabold text-gray-900 mb-3">
-        Activités disponibles
-      </h1>
-      <p class="text-gray-600 max-w-2xl mx-auto">
-        Découvrez les activités ouvertes aux visiteurs et rejoignez-les facilement.
-      </p>
+    <!-- HERO SECTION -->
+    <section class="bg-gradient-to-b from-primary/5 via-background to-background py-20 sm:py-24 lg:py-32">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="space-y-6 max-w-3xl mx-auto">
+          <div class="inline-flex items-center justify-center">
+            <div class="w-20 h-20 bg-gradient-to-br from-primary to-accent rounded-2xl flex items-center justify-center shadow-lg animate-bounce">
+              <span class="text-5xl">🏥</span>
+            </div>
+          </div>
+
+          <h1 class="text-5xl sm:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+            Rejoignez Nos Activités
+          </h1>
+
+          <p class="text-xl text-muted-foreground leading-relaxed">
+            Découvrez les événements, formations et réunions de l&apos;Association Médicale de Ben Guerdane. Participez facilement sans compte.
+          </p>
+
+          <div class="flex flex-col sm:flex-row gap-4 justify-center pt-6">
+            <a href="#activities" class="px-8 py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-lg font-semibold hover:shadow-lg transition-all">
+              Voir les Activités
+            </a>
+            <router-link to="/about" class="px-8 py-3 border border-border text-foreground rounded-lg font-semibold hover:bg-muted transition-all">
+              En Savoir Plus
+            </router-link>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <!-- CONTENT -->
-    <section class="max-w-7xl mx-auto px-6 pb-20">
-
-      <!-- loading -->
-      <div v-if="loading" class="flex justify-center py-10">
-        <div class="w-10 h-10 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
+    <!-- STATS SECTION -->
+    <section class="bg-muted/30 py-12 border-y border-border">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid sm:grid-cols-3 gap-8 text-center">
+          <div>
+            <p class="text-4xl font-bold text-primary mb-2">500+</p>
+            <p class="text-muted-foreground">Professionnels Actifs</p>
+          </div>
+          <div>
+            <p class="text-4xl font-bold text-accent mb-2">50+</p>
+            <p class="text-muted-foreground">Activités par An</p>
+          </div>
+          <div>
+            <p class="text-4xl font-bold text-secondary mb-2">15+</p>
+            <p class="text-muted-foreground">Années d&apos;Expérience</p>
+          </div>
+        </div>
       </div>
+    </section>
 
-      <!-- error -->
-      <div v-else-if="error" class="text-center text-red-600">
-        {{ error }}
-      </div>
-
-      <!-- empty -->
-      <div v-else-if="activities.length === 0" class="text-center py-16">
-        <div class="text-5xl mb-3">📭</div>
-        <h2 class="text-xl font-semibold text-gray-700">
-          Aucune activité active
-        </h2>
-        <p class="text-gray-500 mt-2">
-          Revenez plus tard pour découvrir de nouvelles activités
+    <!-- ACTIVITIES SECTION -->
+    <section id="activities" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl md:text-5xl font-bold text-foreground mb-4">Activités Disponibles</h2>
+        <p class="text-muted-foreground text-lg max-w-2xl mx-auto">
+          Découvrez nos formations, événements et réunions professionnelles
         </p>
       </div>
 
-      <!-- grid -->
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- LOADING -->
+      <div v-if="loading" class="flex items-center justify-center py-20">
+        <div class="text-muted-foreground flex flex-col items-center gap-3">
+          <div class="w-12 h-12 border-4 border-border border-t-primary rounded-full animate-spin"></div>
+          <span>Chargement des activités...</span>
+        </div>
+      </div>
 
+      <!-- ERROR -->
+      <div v-else-if="error" class="p-6 rounded-lg bg-red-50 border border-red-200 text-red-700 text-center">
+        {{ error }}
+      </div>
+
+      <!-- EMPTY -->
+      <div v-else-if="activities.length === 0" class="text-center py-20">
+        <div class="text-6xl mb-4">📭</div>
+        <h3 class="text-2xl font-bold text-foreground mb-2">Aucune Activité Active</h3>
+        <p class="text-muted-foreground">Revenez bientôt pour découvrir nos prochaines activités</p>
+      </div>
+
+      <!-- GRID -->
+      <div v-else class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         <article
             v-for="activity in activities"
             :key="activity.id"
-            class="bg-white rounded-2xl shadow-sm hover:shadow-xl transition border border-gray-100 overflow-hidden group"
+            class="group card-lg overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all cursor-pointer"
         >
 
-          <!-- top bar -->
-          <div class="h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+          <!-- COLOR BAR -->
+          <div 
+            class="h-1 bg-gradient-to-r"
+            :class="{
+              'from-blue-500 to-blue-600': activity.type === 'FORMATION',
+              'from-green-500 to-emerald-600': activity.type === 'EVENEMENT',
+              'from-purple-500 to-pink-600': activity.type === 'REUNION',
+              'from-primary to-accent': !activity.type
+            }"
+          ></div>
 
-          <div class="p-5">
+          <div class="p-6 space-y-4">
 
-            <!-- type -->
-            <div class="flex justify-between mb-3">
-              <span :class="['px-3 py-1 text-xs font-semibold rounded-full', getTypeColor(activity.type)]">
-                {{ activity.type }}
+            <!-- TYPE BADGE -->
+            <div class="flex items-center justify-between">
+              <span 
+                class="text-xs font-bold px-3 py-1.5 rounded-full"
+                :class="{
+                  'bg-blue-100 text-blue-700': activity.type === 'FORMATION',
+                  'bg-green-100 text-green-700': activity.type === 'EVENEMENT',
+                  'bg-purple-100 text-purple-700': activity.type === 'REUNION',
+                  'bg-primary/10 text-primary': !activity.type
+                }"
+              >
+                {{ activity.type || 'AUTRE' }}
+              </span>
+              <span class="text-sm font-semibold text-green-600 flex items-center gap-1">
+                <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
+                Actif
               </span>
             </div>
 
-            <!-- title -->
-            <h3 class="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition">
+            <!-- TITLE -->
+            <h3 class="text-xl font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2">
               {{ activity.titre }}
             </h3>
 
-            <!-- description -->
-            <p class="text-gray-600 text-sm mt-2 line-clamp-3">
+            <!-- DESCRIPTION -->
+            <p class="text-muted-foreground text-sm leading-relaxed line-clamp-3">
               {{ activity.description }}
             </p>
 
-            <!-- footer -->
-            <div class="flex justify-between items-center mt-5 pt-4 border-t">
-
-              <span class="text-green-600 text-sm font-semibold">
-                ● Actif
+            <!-- FOOTER -->
+            <div class="pt-4 border-t border-border flex items-center justify-between">
+              <span class="text-xs text-muted-foreground">
+                <span v-if="activity.participated" class="text-green-600 font-semibold">✓ Participant</span>
+                <span v-else>Cliquez pour participer</span>
               </span>
-
               <button
                   @click="openParticipate(activity)"
-                  class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded-lg"
+                  :disabled="activity.participated"
+                  class="px-4 py-2 text-sm font-semibold rounded-lg transition-all"
+                  :class="activity.participated 
+                    ? 'bg-green-100 text-green-700 cursor-default'
+                    : 'bg-primary text-primary-foreground hover:shadow-md'"
               >
-                Participer
+                {{ activity.participated ? 'Participé' : 'Participer' }}
               </button>
-
             </div>
 
           </div>
         </article>
-
       </div>
-
     </section>
 
-    <!-- POPUP -->
-    <div v-if="showParticipatePopup"
-         class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-
-      <div class="bg-white rounded-xl p-6 w-96">
-
-        <h3 class="text-lg font-bold mb-4">
-          Participer à "{{ participateActivity.titre }}"
-        </h3>
-
-        <input v-model="participateFirstName" placeholder="Prénom"
-               class="w-full border rounded px-3 py-2 mb-2">
-
-        <input v-model="participateLastName" placeholder="Nom"
-               class="w-full border rounded px-3 py-2 mb-2">
-
-        <input v-model="participateEmail" placeholder="Email"
-               class="w-full border rounded px-3 py-2 mb-3">
-
-        <p v-if="participateMessage"
-           class="text-sm mb-2"
-           :class="participateMessageType === 'error' ? 'text-red-600' : 'text-green-600'">
-          {{ participateMessage }}
+    <!-- CTA SECTION -->
+    <section class="bg-gradient-to-r from-primary/10 via-accent/10 to-secondary/10 py-20 border-y border-border">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6">
+        <h2 class="text-3xl md:text-4xl font-bold text-foreground">
+          Rejoignez Notre Communauté
+        </h2>
+        <p class="text-muted-foreground text-lg">
+          Vous avez besoin d&apos;un compte? Créez-en un et accédez à plus de fonctionnalités.
         </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+          <router-link to="/login" class="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:shadow-lg transition-all">
+            Se Connecter
+          </router-link>
+          <router-link to="/register" class="px-6 py-3 border border-border text-foreground rounded-lg font-semibold hover:bg-muted transition-all">
+            S&apos;Enregistrer
+          </router-link>
+        </div>
+      </div>
+    </section>
 
-        <div class="flex justify-end gap-2">
-          <button @click="showParticipatePopup = false"
-                  class="px-4 py-2 bg-gray-200 rounded">
+    <!-- PARTICIPATION POPUP -->
+    <div v-if="showParticipatePopup" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div class="bg-card rounded-2xl border border-border shadow-2xl w-full max-w-md space-y-6 p-8 animate-in">
+
+        <div>
+          <h3 class="text-2xl font-bold text-foreground">
+            Participer à une Activité
+          </h3>
+          <p class="text-muted-foreground text-sm mt-1">
+            "{{ participateActivity?.titre }}"
+          </p>
+        </div>
+
+        <!-- FORM -->
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-foreground mb-2">Prénom</label>
+            <input 
+              v-model="participateFirstName" 
+              type="text"
+              placeholder="Votre prénom"
+              class="w-full px-4 py-2.5 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-foreground mb-2">Nom</label>
+            <input 
+              v-model="participateLastName" 
+              type="text"
+              placeholder="Votre nom"
+              class="w-full px-4 py-2.5 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-foreground mb-2">Email</label>
+            <input 
+              v-model="participateEmail" 
+              type="email"
+              placeholder="votre@email.com"
+              class="w-full px-4 py-2.5 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+        </div>
+
+        <!-- MESSAGE -->
+        <div 
+          v-if="participateMessage"
+          class="p-4 rounded-lg flex items-start gap-3"
+          :class="participateMessageType === 'error' 
+            ? 'bg-red-50 border border-red-200 text-red-700' 
+            : 'bg-green-50 border border-green-200 text-green-700'"
+        >
+          <span class="text-lg">{{ participateMessageType === 'error' ? '⚠️' : '✅' }}</span>
+          <span class="text-sm">{{ participateMessage }}</span>
+        </div>
+
+        <!-- BUTTONS -->
+        <div class="flex gap-3 pt-4">
+          <button 
+            @click="showParticipatePopup = false"
+            class="flex-1 px-4 py-2.5 border border-border text-foreground rounded-lg font-medium hover:bg-muted transition-colors"
+          >
             Annuler
           </button>
-
-          <button @click="submitParticipation"
-                  :disabled="submittingParticipation"
-                  class="px-4 py-2 bg-blue-600 text-white rounded">
-            {{ submittingParticipation ? 'Envoi...' : 'Envoyer' }}
+          <button 
+            @click="submitParticipation"
+            :disabled="submittingParticipation"
+            class="flex-1 px-4 py-2.5 bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-lg font-medium hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            <span v-if="submittingParticipation" class="flex items-center justify-center gap-2">
+              <span class="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+              Envoi...
+            </span>
+            <span v-else>Participer</span>
           </button>
         </div>
 
