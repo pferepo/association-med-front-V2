@@ -37,7 +37,6 @@ function getTypeColor(type) {
   const colors = {
     'FORMATION': 'badge-blue',
     'EVENEMENT': 'badge-green',
-    'EVENNEMENTs': 'badge-green',
     'REUNION': 'badge-yellow'
   }
   return colors[type] || 'badge-gray'

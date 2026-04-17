@@ -32,9 +32,8 @@ async function submitVote(vote, choix) {
   voting.value = { voteId: vote.id, choix }
   voteError.value = null
   voteSuccess.value = null
-  
+
   try {
-    // Try the participation endpoint first
     await voteService.participate(vote.id, choix)
     voteSuccess.value = vote.id
     setTimeout(() => {
@@ -44,7 +43,6 @@ async function submitVote(vote, choix) {
     if (err.response?.status === 409) {
       voteError.value = { id: vote.id, message: 'Vous avez déjà voté pour cette activité' }
     } else {
-      // Try alternative endpoint
       try {
         await voteService.submitVote(authStore.user?.id, vote.id, choix)
         voteSuccess.value = vote.id
@@ -89,125 +87,137 @@ function isVotingFor(voteId, choix) {
   return voting.value?.voteId === voteId && voting.value?.choix === choix
 }
 
+function isVisibleVote(vote) {
+  if (!vote) return false
+
+  // statut réel
+  const isOpen = vote.statut === 'OUVERT'
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const limit = vote.dateLimite ? new Date(vote.dateLimite) : null
+  if (limit) limit.setHours(0, 0, 0, 0)
+
+  // visible si :
+  // - ouvert
+  // - ET (pas de date OU date valide)
+  const isDateValid = !limit || limit >= today
+
+  return isOpen && isDateValid
+}
+
 onMounted(fetchData)
 </script>
 
 <template>
-  <div>
+  <div class="p-6">
+
+    <!-- HEADER -->
     <div class="mb-6">
       <h1 class="text-2xl font-bold text-gray-900">Votes</h1>
       <p class="text-gray-600 mt-1">Participez aux votes de l'association</p>
     </div>
 
-    <!-- Loading State -->
+    <!-- LOADING -->
     <div v-if="loading" class="flex justify-center py-12">
-      <div class="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin"></div>
+      <div class="w-8 h-8 border-4 border-gray-200 border-t-gray-600 rounded-full animate-spin"></div>
     </div>
 
-    <!-- Votes List -->
-    <div v-else class="space-y-6">
+    <!-- LIST -->
+    <div v-else class="space-y-5">
+
       <article
-        v-for="vote in votes"
-        :key="vote.id"
-        class="card"
+          v-for="vote in votes.filter(v => isVisibleVote(v))"
+          :key="vote.id"
+          class="bg-white border rounded-xl shadow-sm p-5 hover:shadow-md transition"
       >
-        <div class="flex items-start justify-between mb-4">
+
+        <!-- HEADER CARD -->
+        <div class="flex justify-between items-start mb-3">
           <div>
             <h3 class="text-lg font-semibold text-gray-900">
               {{ getActivityTitle(vote.activiteId) }}
             </h3>
-            <p class="text-sm text-gray-500 mt-1">Vote #{{ vote.id }}</p>
+            <p class="text-xs text-gray-400">Vote #{{ vote.id }}</p>
           </div>
-          <span :class="['badge', vote.statut === 'OUVERT' ? 'badge-green' : 'badge-red']">
+
+          <span
+              class="text-xs px-3 py-1 rounded-full font-medium"
+              :class="vote.statut === 'OUVERT'
+              ? 'bg-green-100 text-green-700'
+              : 'bg-gray-100 text-gray-600'"
+          >
             {{ vote.statut }}
           </span>
         </div>
 
-        <p v-if="getActivityDescription(vote.activiteId)" class="text-gray-600 text-sm mb-4">
+        <!-- DESCRIPTION -->
+        <p v-if="getActivityDescription(vote.activiteId)"
+           class="text-sm text-gray-600 mb-3">
           {{ getActivityDescription(vote.activiteId) }}
         </p>
 
-        <div class="flex items-center gap-4 text-sm text-gray-500 mb-6">
-          <div class="flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <span>Date limite: {{ formatDate(vote.dateLimite) }}</span>
-          </div>
+        <!-- DATE -->
+        <div class="text-xs text-gray-500 mb-4">
+          Date limite :
+          <span class="font-medium text-gray-700">
+            {{ formatDate(vote.dateLimite) }}
+          </span>
         </div>
 
-        <!-- Success Message -->
+        <!-- SUCCESS -->
         <div
-          v-if="voteSuccess === vote.id"
-          class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3"
+            v-if="voteSuccess === vote.id"
+            class="mb-3 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm"
         >
-          <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          <span class="text-green-700">Votre vote a été enregistré avec succès!</span>
+          ✔ Vote enregistré avec succès
         </div>
 
-        <!-- Error Message -->
+        <!-- ERROR -->
         <div
-          v-if="voteError?.id === vote.id"
-          class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3"
+            v-if="voteError?.id === vote.id"
+            class="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm"
         >
-          <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span class="text-red-700">{{ voteError.message }}</span>
+          {{ voteError.message }}
         </div>
 
-        <!-- Voting Buttons -->
-        <div v-if="vote.statut === 'OUVERT'" class="flex items-center gap-4">
+        <!-- BUTTONS (UI ONLY MODIFIED) -->
+        <div v-if="vote.statut === 'OUVERT'" class="flex justify-end gap-2">
+
           <button
-            @click="submitVote(vote, true)"
-            :disabled="voting !== null"
-            class="btn btn-success flex-1 py-3"
+              @click="submitVote(vote, true)"
+              :disabled="voting !== null"
+              class="px-3 py-1.5 text-xs rounded-md bg-green-500 text-white hover:bg-green-600 transition shadow-sm"
           >
-            <span v-if="isVotingFor(vote.id, true)" class="inline-flex items-center gap-2">
-              <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Vote en cours...
-            </span>
-            <span v-else class="inline-flex items-center gap-2">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-              Voter OUI
-            </span>
+            ✔ OUI
           </button>
+
           <button
-            @click="submitVote(vote, false)"
-            :disabled="voting !== null"
-            class="btn btn-danger flex-1 py-3"
+              @click="submitVote(vote, false)"
+              :disabled="voting !== null"
+              class="px-3 py-1.5 text-xs rounded-md bg-red-500 text-white hover:bg-red-600 transition shadow-sm"
           >
-            <span v-if="isVotingFor(vote.id, false)" class="inline-flex items-center gap-2">
-              <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Vote en cours...
-            </span>
-            <span v-else class="inline-flex items-center gap-2">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              Voter NON
-            </span>
+            ✖ NON
           </button>
+
         </div>
 
-        <div v-else class="p-4 bg-gray-100 rounded-lg text-center text-gray-600">
+        <!-- CLOSED -->
+        <div v-else class="text-center text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
           Ce vote est clôturé
         </div>
+
       </article>
 
-      <div v-if="votes.length === 0" class="text-center py-12 text-gray-500">
+      <!-- EMPTY -->
+      <div
+          v-if="votes.filter(v => isVisibleVote(v)).length === 0"
+          class="text-center py-12 text-gray-500"
+      >
         Aucun vote disponible
       </div>
+
     </div>
   </div>
 </template>

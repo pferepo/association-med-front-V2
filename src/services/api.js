@@ -2,37 +2,33 @@ import axios from 'axios'
 import router from '@/router'
 
 const api = axios.create({
-  baseURL: '/api',
-  headers: {
-    'Content-Type': 'application/json'
-  }
+    baseURL: import.meta.env.VITE_API_URL + '/api'
 })
 
-// Request interceptor to attach JWT token
-api.interceptors.request.use(
-  (config) => {
+api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token')
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+        config.headers.Authorization = `Bearer ${token}`
     }
     return config
-  },
-  (error) => {
-    return Promise.reject(error)
-  }
+})
+
+api.interceptors.response.use(
+    res => res,
+    err => {
+        if (err.response?.status === 401) {
+            localStorage.removeItem('token')
+            router.push('/login')
+        }
+        return Promise.reject(err)
+    }
 )
 
-// Response interceptor to handle 401 errors
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      router.push('/login')
-    }
-    return Promise.reject(error)
-  }
-)
+const API_URL = import.meta.env.VITE_API_URL
+
+export function getImageUrl(path) {
+    if (!path) return null
+    return `${API_URL}${path}`
+}
 
 export default api
