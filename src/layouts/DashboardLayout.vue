@@ -36,77 +36,88 @@ function handleLogout() {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-background">
+    <!-- Overlay for mobile -->
+    <div v-if="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-black/40 z-40 lg:hidden"></div>
 
     <!-- SIDEBAR -->
     <aside
         :class="[
-        'fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-gray-200 transform transition-transform duration-300 lg:translate-x-0',
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        'fixed top-0 left-0 z-50 h-full w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border transform transition-all duration-300 lg:translate-x-0 flex flex-col',
+        sidebarOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full'
       ]"
     >
-      <div class="flex flex-col h-full">
+      <!-- LOGO -->
+      <div class="flex items-center gap-3 px-6 py-6 border-b border-sidebar-border/30">
+        <div class="w-10 h-10 bg-gradient-to-br from-sidebar-primary to-accent rounded-lg flex items-center justify-center shadow-md">
+          <span class="text-white font-bold text-sm">🏥</span>
+        </div>
+        <div>
+          <p class="font-bold text-sm leading-tight">AMB</p>
+          <p class="text-xs opacity-70">Association Médicale</p>
+        </div>
+      </div>
 
-        <!-- LOGO -->
-        <div class="flex items-center gap-3 px-6 py-5 border-b border-gray-100">
-          <div class="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
-            <span class="text-white font-bold"> AMB </span>
-          </div>
-          <span class="text-lg font-bold text-gray-900">
-            Association Médicale Ben Guerdane
+      <!-- NAV -->
+      <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+        <router-link
+            v-for="item in navigation"
+            :key="item.path"
+            :to="item.path"
+            :class="[
+            'flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200',
+            isActive(item.path)
+              ? 'bg-sidebar-primary/20 text-sidebar-primary'
+              : 'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/10'
+          ]"
+        >
+          <span class="text-lg">
+            {{ item.icon === 'dashboard' ? '📊' : 
+               item.icon === 'activities' ? '📅' : 
+               item.icon === 'votes' ? '🗳️' : 
+               item.icon === 'participations' ? '👥' : 
+               item.icon === 'users' ? '👨‍💼' : 
+               item.icon === 'history' ? '📜' : '•' }}
           </span>
+          {{ item.name }}
+        </router-link>
+      </nav>
+
+      <!-- USER SECTION -->
+      <div class="px-4 py-4 border-t border-sidebar-border/30 space-y-3">
+        <div class="bg-sidebar-accent/10 rounded-lg p-3">
+          <p class="text-xs opacity-60 mb-1">Connecté en tant que</p>
+          <p class="text-sm font-semibold truncate">{{ authStore.userName }}</p>
         </div>
-
-        <!-- NAV -->
-        <nav class="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-          <router-link
-              v-for="item in navigation"
-              :key="item.path"
-              :to="item.path"
-              :class="[
-              'flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors',
-              isActive(item.path)
-                ? 'bg-primary-50 text-primary-700'
-                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-            ]"
-          >
-            {{ item.name }}
-          </router-link>
-        </nav>
-
-        <!-- USER -->
-        <div class="px-4 py-4 border-t border-gray-100">
-          <div class="text-sm text-gray-700">
-            {{ authStore.userName }}
-          </div>
-        </div>
-
+        <button @click="handleLogout" class="w-full px-4 py-2 bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-lg font-medium text-sm transition-colors">
+          Déconnexion
+        </button>
       </div>
     </aside>
 
     <!-- MAIN -->
-    <div class="lg:pl-64">
-
+    <div class="lg:ml-64">
       <!-- HEADER -->
-      <header class="sticky top-0 z-30 bg-white border-b border-gray-200">
-        <div class="flex items-center justify-between px-6 h-16">
-
+      <header class="sticky top-0 z-30 bg-card border-b border-border shadow-sm">
+        <div class="flex items-center justify-between px-6 h-20">
           <!-- LEFT -->
           <div class="flex items-center gap-4">
-            <button @click="sidebarOpen = true" class="lg:hidden">☰</button>
+            <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden p-2 hover:bg-muted rounded-lg transition-colors">
+              <span class="text-xl">☰</span>
+            </button>
 
-            <!-- 🔥 LIENS PRO -->
-            <nav class="hidden md:flex items-center gap-6">
+            <!-- NAV LINKS -->
+            <nav class="hidden md:flex items-center gap-6 ml-4">
               <router-link
                   to="/about"
-                  class="text-sm font-medium text-gray-600 hover:text-primary-600 transition"
+                  class="text-sm font-medium text-foreground/70 hover:text-primary transition-colors"
               >
                 Qui sommes-nous ?
               </router-link>
 
               <router-link
                   to="/contact"
-                  class="text-sm font-medium text-gray-600 hover:text-primary-600 transition"
+                  class="text-sm font-medium text-foreground/70 hover:text-primary transition-colors"
               >
                 Contactez-nous
               </router-link>
@@ -115,22 +126,18 @@ function handleLogout() {
 
           <!-- RIGHT -->
           <div class="flex items-center gap-4">
-            <span class="text-sm">{{ authStore.userName }}</span>
-
-            <button @click="handleLogout" class="text-sm text-red-500 hover:underline">
-              Déconnexion
-            </button>
+            <div class="hidden sm:flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
+              <span class="text-xs text-muted-foreground">👤</span>
+              <span class="text-sm font-medium text-foreground">{{ authStore.userName }}</span>
+            </div>
           </div>
-
         </div>
       </header>
 
       <!-- CONTENT -->
-      <main class="p-6">
+      <main class="p-6 md:p-8">
         <RouterView />
       </main>
-
     </div>
-
   </div>
 </template>
