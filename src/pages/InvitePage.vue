@@ -13,6 +13,7 @@ const error = ref(null)
 // Popup participation
 const showParticipatePopup = ref(false)
 const participateEmail = ref('')
+const participateEtb = ref('')
 const participateFirstName = ref('')
 const participateLastName = ref('')
 const participateActivity = ref(null)
@@ -53,6 +54,7 @@ function getTypeColor(type) {
 function openParticipate(activity) {
   participateActivity.value = activity
   participateEmail.value = ''
+  participateEtb.value = ''
   participateFirstName.value = ''
   participateLastName.value = ''
   participateMessage.value = ''
@@ -76,6 +78,7 @@ async function submitParticipation() {
       nomParticipant: participateLastName.value,
       prenomParticipant: participateFirstName.value,
       emailParticipant: participateEmail.value,
+      etbParticipant: participateEtb.value,
       activiteId: participateActivity.value.id
     })
 
@@ -129,10 +132,10 @@ async function submitParticipation() {
 
         </nav>
 
-        <!-- LOGIN -->
+        <!-- LOGIN BTN -->
         <button
             @click="goToLogin"
-            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+            class="px-4 py-2 bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-lg font-semibold hover:shadow-lg transition-all"
         >
           Se connecter
         </button>
@@ -245,6 +248,9 @@ async function submitParticipation() {
                class="w-full border rounded px-3 py-2 mb-2">
 
         <input v-model="participateEmail" placeholder="Email"
+               class="w-full border rounded px-3 py-2 mb-3">
+               
+        <input v-model="participateEtb" placeholder="votre établissement"
                class="w-full border rounded px-3 py-2 mb-3">
 
         <p v-if="participateMessage"
