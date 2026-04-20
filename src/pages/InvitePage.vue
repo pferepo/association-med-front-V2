@@ -21,15 +21,11 @@ const participateMessage = ref('')
 const participateMessageType = ref('')
 const submittingParticipation = ref(false)
 
-// Charger activités (UNIQUEMENT ACTIVES)
 onMounted(async () => {
   try {
     const data = await activityService.getForGuests()
-
     activities.value = data
-        .filter(act => act.statut === 'VALIDEE')
-        .map(act => ({ ...act, participated: false }))
-
+    console.log(data)
   } catch (err) {
     error.value = 'Impossible de charger les activités'
   } finally {
