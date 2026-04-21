@@ -1,4 +1,4 @@
-import api from './api' // ton instance Axios configurée avec baseURL
+import api from './api' // instance Axios configurée avec baseURL
 
 // Service pour l'historique
 export const historiqueService = {

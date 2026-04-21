@@ -20,7 +20,7 @@ const membreInput = ref('')
 const saving = ref(false)
 const error = ref(null)
 
-// 🔥 récupérer toutes les activités
+// récupérer toutes les activités
 async function fetchActivities() {
   loading.value = true
   try {
@@ -78,7 +78,7 @@ function removeMembre(index) {
   form.value.membre.splice(index, 1)
 }
 
-// 🎨 BADGES
+// BADGES
 function getTypeColor(type) {
   return {
     FORMATION: 'badge-blue',

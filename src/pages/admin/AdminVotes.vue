@@ -85,7 +85,7 @@ async function viewResults(vote) {
 
   try {
     voteResults.value = await voteService.getVoteResults(vote.id)
-    // ✅ Charger tous les noms en parallèle
+    // Charger tous les noms en parallèle
     await Promise.all(voteResults.value.map(r => loadUserName(r.utilisateurId)))
   } catch (err) {
     voteResults.value = []

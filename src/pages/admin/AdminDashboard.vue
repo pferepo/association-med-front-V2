@@ -39,7 +39,6 @@ onMounted(async () => {
 
     recentActivities.value = activities.slice(0, 5)
 
-    // 🔥 FIX IMPORTANT ICI
     const normalizedContacts =
         Array.isArray(contacts)
             ? contacts
