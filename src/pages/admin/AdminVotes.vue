@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import voteService from '@/services/voteService'
 import activityService from '@/services/activityService'
+import userService from '@/services/userService'
 
 const votes = ref([])
 const activities = ref([])
@@ -10,6 +11,22 @@ const loading = ref(true)
 const selectedVote = ref(null)
 const voteResults = ref([])
 const loadingResults = ref(false)
+
+// Cache des noms d'utilisateurs
+const userNames = ref({})
+
+/* =========================
+   LOAD USER NAME
+========================= */
+async function loadUserName(id) {
+  if (userNames.value[id]) return  // déjà en cache
+  try {
+    const user = await userService.getById(id)
+    userNames.value[id] = `${user.prenom} ${user.nom}`
+  } catch {
+    userNames.value[id] = `#${id}`  // fallback si erreur
+  }
+}
 
 /* =========================
    LOAD DATA
@@ -68,6 +85,8 @@ async function viewResults(vote) {
 
   try {
     voteResults.value = await voteService.getVoteResults(vote.id)
+    // ✅ Charger tous les noms en parallèle
+    await Promise.all(voteResults.value.map(r => loadUserName(r.utilisateurId)))
   } catch (err) {
     voteResults.value = []
   } finally {
@@ -163,7 +182,6 @@ onMounted(fetchData)
 
           <div v-if="vote.statut === 'OUVERT'" class="flex gap-2">
 
-            <!-- 🟢 VALIDER (UNCHANGED) -->
             <button
                 @click="closeVote(vote.id, true)"
                 class="btn btn-success flex-1 text-sm py-2"
@@ -171,7 +189,6 @@ onMounted(fetchData)
               Approuver
             </button>
 
-            <!-- 🩷 REFUSER (soft red) -->
             <button
                 @click="closeVote(vote.id, false)"
                 class="btn bg-red-300 hover:bg-red-400 text-white flex-1 text-sm py-2"
@@ -181,7 +198,6 @@ onMounted(fetchData)
 
           </div>
 
-          <!-- 🔴 SUPPRIMER (strong red) -->
           <button
               @click="deleteVote(vote.id)"
               class="btn bg-red-600 hover:bg-red-700 text-white text-sm py-2"
@@ -250,8 +266,9 @@ onMounted(fetchData)
                     :key="r.id"
                     class="flex justify-between p-3 bg-gray-50 rounded-lg"
                 >
+                  <!-- ✅ Affichage du nom au lieu de l'ID -->
                   <span class="text-sm text-gray-600">
-                    Utilisateur #{{ r.utilisateurId }}
+                    {{ userNames[r.utilisateurId] || `#${r.utilisateurId}` }}
                   </span>
 
                   <span :class="r.choix ? 'text-green-600' : 'text-red-500'">
