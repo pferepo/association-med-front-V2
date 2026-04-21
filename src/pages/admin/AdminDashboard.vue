@@ -109,7 +109,7 @@ const deleteMessage = async (id) => {
       </div>
     </div>
 
-    <!-- 💥 INBOX STYLE FACEBOOK -->
+    <!-- INBOX STYLE FACEBOOK -->
     <div class="card flex h-[520px] overflow-hidden">
 
       <!-- LEFT LIST -->

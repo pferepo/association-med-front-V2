@@ -11,6 +11,11 @@ export const historiqueService = {
             console.error('Erreur service Historique:', error)
             throw error
         }
+    },
+
+    async deleteHistorique(id) {
+        const response = await api.delete(`/historique/${id}`)
+        return response.data
     }
 }
 
