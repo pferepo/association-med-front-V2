@@ -193,6 +193,7 @@ const filteredUsers = computed(() => {
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase()
     r = r.filter(u =>
+        u.id?.toString().toLowerCase().includes(q) ||
         u.nom?.toLowerCase().includes(q) ||
         u.prenom?.toLowerCase().includes(q) ||
         u.email?.toLowerCase().includes(q)
@@ -244,7 +245,7 @@ onMounted(fetchUsers)
             <div v-else class="avatar">{{ u.nom?.[0] }}{{ u.prenom?.[0] }}</div>
 
             <div>
-              <div class="font-medium">{{ u.prenom }} {{ u.nom }}</div>
+              <div class="font-medium">{{ u.id }} - {{ u.prenom }} {{ u.nom }}</div>
               <div class="text-xs text-gray-500">{{ u.role }} - {{ u.genre }}</div>
             </div>
           </td>
