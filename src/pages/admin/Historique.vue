@@ -8,6 +8,7 @@ import voteService from '@/services/voteService'
 const historiques = ref([])
 const loading = ref(true)
 const error = ref(false)
+const deleting = ref(null)
 
 // =====================
 // CACHE
@@ -96,12 +97,7 @@ async function enrich(data) {
             vote = await getVote(h.entityId)
           }
 
-          return {
-            ...h,
-            user,
-            activite,
-            vote
-          }
+          return { ...h, user, activite, vote }
         })
     )
 
@@ -134,6 +130,23 @@ async function fetchHistorique() {
     error.value = true
   } finally {
     loading.value = false
+  }
+}
+
+// =====================
+// DELETE
+// =====================
+async function deleteHistorique(id) {
+  if (!confirm('Supprimer cet historique ?')) return
+
+  deleting.value = id
+  try {
+    await historiqueService.deleteHistorique(id)
+    historiques.value = historiques.value.filter(h => h.id !== id)
+  } catch (err) {
+    alert('Erreur lors de la suppression')
+  } finally {
+    deleting.value = null
   }
 }
 
@@ -210,10 +223,7 @@ onMounted(fetchHistorique)
 
                 <div v-if="h.activite.membre?.length">
                   <b>Membres:</b>
-                  <span
-                      v-for="(m,i) in h.activite.membre"
-                      :key="i"
-                  >
+                  <span v-for="(m,i) in h.activite.membre" :key="i">
                     {{ m }}<span v-if="i < h.activite.membre.length - 1">, </span>
                   </span>
                 </div>
@@ -243,9 +253,23 @@ onMounted(fetchHistorique)
 
           </div>
 
-          <!-- DATE -->
-          <div class="text-xs text-gray-400 whitespace-nowrap">
-            {{ new Date(h.dateAction).toLocaleString('fr-FR') }}
+          <!-- RIGHT : DATE + DELETE -->
+          <div class="flex flex-col items-end justify-between gap-2">
+
+            <span class="text-xs text-gray-400 whitespace-nowrap">
+              {{ new Date(h.dateAction).toLocaleString('fr-FR') }}
+            </span>
+
+            <!-- BOUTON SUPPRIMER -->
+            <button
+                @click="deleteHistorique(h.id)"
+                :disabled="deleting === h.id"
+                class="text-xs px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+              <span v-if="deleting === h.id">...</span>
+              <span v-else>🗑 Supprimer</span>
+            </button>
+
           </div>
 
         </div>

@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import voteService from '@/services/voteService'
 import activityService from '@/services/activityService'
+import userService from '@/services/userService'
 
 const votes = ref([])
 const activities = ref([])
@@ -10,6 +11,21 @@ const loading = ref(true)
 const selectedVote = ref(null)
 const voteResults = ref([])
 const loadingResults = ref(false)
+
+const userNames = ref({})
+
+/* =========================
+   LOAD USER NAME
+========================= */
+async function loadUserName(id) {
+  if (userNames.value[id]) return
+  try {
+    const user = await userService.getById(id)
+    userNames.value[id] = `${user.prenom} ${user.nom}`
+  } catch {
+    userNames.value[id] = `#${id}`
+  }
+}
 
 /* =========================
    LOAD DATA
@@ -68,6 +84,7 @@ async function viewResults(vote) {
 
   try {
     voteResults.value = await voteService.getVoteResults(vote.id)
+    await Promise.all(voteResults.value.map(r => loadUserName(r.utilisateurId)))
   } catch (err) {
     voteResults.value = []
   } finally {
@@ -130,15 +147,16 @@ onMounted(fetchData)
       <article
           v-for="vote in votes"
           :key="vote.id"
-          class="card hover:shadow-lg transition-shadow"
+          :class="[
+            'card hover:shadow-lg transition-shadow',
+            vote.statut === 'FERME' ? 'opacity-75 bg-gray-50' : ''
+          ]"
       >
-
         <!-- HEADER -->
         <div class="flex items-start justify-between mb-4">
           <span :class="['badge', vote.statut === 'OUVERT' ? 'badge-green' : 'badge-red']">
             {{ vote.statut }}
           </span>
-
           <span class="text-sm text-gray-500">{{ vote.description }}</span>
         </div>
 
@@ -154,43 +172,38 @@ onMounted(fetchData)
         <!-- ACTIONS -->
         <div class="flex flex-col gap-2 pt-4 border-t border-gray-100">
 
-          <button
-              @click="viewResults(vote)"
-              class="btn btn-secondary text-sm py-2"
-          >
-            Voir résultats
-          </button>
-
-          <div v-if="vote.statut === 'OUVERT'" class="flex gap-2">
-
-            <!-- 🟢 VALIDER (UNCHANGED) -->
-            <button
-                @click="closeVote(vote.id, true)"
-                class="btn btn-success flex-1 text-sm py-2"
-            >
-              Approuver
+          <!-- Vote OUVERT : tous les boutons -->
+          <template v-if="vote.statut === 'OUVERT'">
+            <button @click="viewResults(vote)" class="btn btn-secondary text-sm py-2">
+              Voir résultats
             </button>
 
-            <!-- 🩷 REFUSER (soft red) -->
-            <button
-                @click="closeVote(vote.id, false)"
-                class="btn bg-red-300 hover:bg-red-400 text-white flex-1 text-sm py-2"
-            >
-              Refuser
+            <div class="flex gap-2">
+              <button @click="closeVote(vote.id, true)" class="btn btn-success flex-1 text-sm py-2">
+                Approuver
+              </button>
+              <button @click="closeVote(vote.id, false)" class="btn bg-red-300 hover:bg-red-400 text-white flex-1 text-sm py-2">
+                Refuser
+              </button>
+            </div>
+
+            <button @click="deleteVote(vote.id)" class="btn bg-red-600 hover:bg-red-700 text-white text-sm py-2">
+              Supprimer
+            </button>
+          </template>
+
+          <!-- Vote FERME : Voir résultats + Supprimer uniquement -->
+          <template v-else>
+            <button @click="viewResults(vote)" class="btn btn-secondary text-sm py-2">
+              Voir résultats
             </button>
 
-          </div>
-
-          <!-- 🔴 SUPPRIMER (strong red) -->
-          <button
-              @click="deleteVote(vote.id)"
-              class="btn bg-red-600 hover:bg-red-700 text-white text-sm py-2"
-          >
-            Supprimer
-          </button>
+            <button @click="deleteVote(vote.id)" class="btn bg-red-600 hover:bg-red-700 text-white text-sm py-2">
+              Supprimer
+            </button>
+          </template>
 
         </div>
-
       </article>
 
       <div v-if="votes.length === 0" class="col-span-full text-center py-12 text-gray-500">
@@ -225,40 +238,33 @@ onMounted(fetchData)
             <div v-if="voteResults.length > 0">
 
               <div class="grid grid-cols-3 gap-4 mb-6">
-
                 <div class="text-center p-4 bg-gray-50 rounded-lg">
                   <p class="text-xl font-bold">{{ stats(voteResults).total }}</p>
                   <p class="text-sm text-gray-500">Total</p>
                 </div>
-
                 <div class="text-center p-4 bg-green-50 rounded-lg">
                   <p class="text-xl font-bold text-green-600">{{ stats(voteResults).yes }}</p>
                   <p class="text-sm text-gray-500">Pour</p>
                 </div>
-
                 <div class="text-center p-4 bg-red-50 rounded-lg">
                   <p class="text-xl font-bold text-red-500">{{ stats(voteResults).no }}</p>
                   <p class="text-sm text-gray-500">Contre</p>
                 </div>
-
               </div>
 
               <div class="space-y-2 max-h-60 overflow-y-auto">
-
                 <div
                     v-for="r in voteResults"
                     :key="r.id"
                     class="flex justify-between p-3 bg-gray-50 rounded-lg"
                 >
                   <span class="text-sm text-gray-600">
-                    Utilisateur #{{ r.utilisateurId }}
+                    {{ userNames[r.utilisateurId] || `#${r.utilisateurId}` }}
                   </span>
-
                   <span :class="r.choix ? 'text-green-600' : 'text-red-500'">
                     {{ r.choix ? 'Pour' : 'Contre' }}
                   </span>
                 </div>
-
               </div>
 
             </div>
@@ -270,7 +276,6 @@ onMounted(fetchData)
           </template>
 
         </div>
-
       </div>
     </div>
 

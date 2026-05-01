@@ -1,4 +1,4 @@
-import api from './api' // ton instance Axios configurée avec baseURL
+import api from './api' // instance Axios configurée avec baseURL
 
 // Service pour l'historique
 export const historiqueService = {
@@ -11,6 +11,11 @@ export const historiqueService = {
             console.error('Erreur service Historique:', error)
             throw error
         }
+    },
+
+    async deleteHistorique(id) {
+        const response = await api.delete(`/historique/${id}`)
+        return response.data
     }
 }
 

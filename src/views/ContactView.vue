@@ -79,29 +79,48 @@ const submitForm = async () => {
       Contactez-Nous
     </h1>
 
-    <!-- DYNAMIC INFO -->
-    <div v-if="!loading && compteAppli"
-         class="bg-white border rounded-xl p-6 shadow-sm space-y-3 text-gray-700">
+    <!-- CONTACT INFO -->
+          <div v-if="!loading && compteAppli" class="card-lg p-8 space-y-6">
+            <h2 class="text-xl font-bold text-foreground flex items-center gap-2">
+              <span>📋</span> Informations de Contact
+            </h2>
 
-      <p>
-        <strong>Responsable :</strong>
-        {{ compteAppli.nom }}
-      </p>
+            <div class="space-y-4">
+              <div class="flex items-start gap-4">
+                <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                  <span class="text-lg">👤</span>
+                </div>
+                <div>
+                  <p class="text-sm text-muted-foreground">Responsable</p>
+                  <p class="text-foreground font-semibold">{{ compteAppli.nom || 'Non disponible' }}</p>
+                </div>
+              </div>
 
-      <p>
-        <strong>Téléphone :</strong>
-        {{ compteAppli.tel }}
-      </p>
+              <div class="flex items-start gap-4">
+                <div class="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0 mt-1">
+                  <span class="text-lg">📱</span>
+                </div>
+                <div>
+                  <p class="text-sm text-muted-foreground">Téléphone</p>
+                  <a :href="`tel:${compteAppli.tel}`" class="text-foreground font-semibold hover:text-primary transition-colors">
+                    {{ compteAppli.tel || 'Non disponible' }}
+                  </a>
+                </div>
+              </div>
 
-      <p>
-        <strong>Email :</strong>
-        {{ compteAppli.email }}
-      </p>
-
-
-
-
-    </div>
+              <div class="flex items-start gap-4">
+                <div class="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center flex-shrink-0 mt-1">
+                  <span class="text-lg">📧</span>
+                </div>
+                <div>
+                  <p class="text-sm text-muted-foreground">Email</p>
+                  <a :href="`mailto:${compteAppli.email}`" class="text-foreground font-semibold hover:text-primary transition-colors">
+                    {{ compteAppli.email || 'Non disponible' }}
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
 
     <!-- LOADING -->
     <div v-else class="text-center text-gray-500">
@@ -112,7 +131,7 @@ const submitForm = async () => {
     <div class="bg-white border rounded-xl p-6 shadow-sm space-y-4">
 
       <h2 class="text-xl font-semibold">
-        Formulaire de Contact
+              <span>✉️</span> Formulaire de Contact
       </h2>
 
       <!-- NOM -->

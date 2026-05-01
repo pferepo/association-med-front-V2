@@ -33,28 +33,42 @@ async function submitVote(vote, choix) {
   voteError.value = null
   voteSuccess.value = null
 
-  try {
-    await voteService.participate(vote.id, choix)
-    voteSuccess.value = vote.id
+  const showSuccess = (id) => {
+    voteSuccess.value = id
     setTimeout(() => {
       voteSuccess.value = null
     }, 3000)
+  }
+
+  const showError = (id, message) => {
+    voteError.value = { id, message }
+  }
+
+  try {
+    // 1st attempt
+    await voteService.participate(vote.id, choix)
+    showSuccess(vote.id)
+
   } catch (err) {
-    if (err.response?.status === 409) {
-      voteError.value = { id: vote.id, message: 'Vous avez déjà voté pour cette activité' }
-    } else {
-      try {
-        await voteService.submitVote(authStore.user?.id, vote.id, choix)
-        voteSuccess.value = vote.id
-        setTimeout(() => {
-          voteSuccess.value = null
-        }, 3000)
-      } catch (altErr) {
-        if (altErr.response?.status === 409) {
-          voteError.value = { id: vote.id, message: 'Vous avez déjà voté pour cette activité' }
-        } else {
-          voteError.value = { id: vote.id, message: 'Erreur lors du vote' }
-        }
+
+    // déjà voté
+    if (err.response?.status === 400) {
+      showError(vote.id, 'Vous avez déjà voté pour cette activité')
+      return
+    }
+
+    // fallback attempt
+    try {
+      const userId = authStore.user?.id
+      await voteService.submitVote(userId, vote.id, choix)
+      showSuccess(vote.id)
+
+    } catch (altErr) {
+
+      if (altErr.response?.status === 400) {
+        showError(vote.id, 'Vous avez déjà voté pour cette activité')
+      } else {
+        showError(vote.id, 'Erreur lors du vote')
       }
     }
   } finally {

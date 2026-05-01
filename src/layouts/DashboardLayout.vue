@@ -14,12 +14,12 @@ const basePath = computed(() => isAdmin.value ? '/admin' : '/membre')
 
 const navigation = computed(() => {
   const items = [
-    { name: 'Dashboard', path: basePath.value, icon: 'dashboard', roles: ['ADMIN', 'MEMBRE_BUREAU_EXECUTIF'] },
-    { name: 'Activités', path: `${basePath.value}/activites`, icon: 'activities', roles: ['ADMIN', 'MEMBRE_BUREAU_EXECUTIF'] },
-    { name: 'Votes', path: `${basePath.value}/votes`, icon: 'votes', roles: ['ADMIN', 'MEMBRE_BUREAU_EXECUTIF'] },
-    { name: 'Participations', path: `${basePath.value}/participations`, icon: 'participations', roles: ['ADMIN', 'MEMBRE_BUREAU_EXECUTIF'] },
-    { name: 'Utilisateurs', path: '/admin/users', icon: 'users', roles: ['ADMIN'] },
-    { name: 'Historique', path: `${basePath.value}/historique`, icon: 'history', roles: ['ADMIN'] }
+    { name: '📊 Dashboard', path: basePath.value, icon: 'dashboard', roles: ['ADMIN', 'MEMBRE_BUREAU_EXECUTIF'] },
+    { name: '📅 Activités', path: `${basePath.value}/activites`, icon: 'activities', roles: ['ADMIN', 'MEMBRE_BUREAU_EXECUTIF'] },
+    { name: '🗳️ Votes', path: `${basePath.value}/votes`, icon: 'votes', roles: ['ADMIN', 'MEMBRE_BUREAU_EXECUTIF'] },
+    { name: '👥 Participations', path: `${basePath.value}/participations`, icon: 'participations', roles: ['ADMIN', 'MEMBRE_BUREAU_EXECUTIF'] },
+    { name: '👨‍💼 Utilisateurs', path: '/admin/users', icon: 'users', roles: ['ADMIN'] },
+    { name: '📜 Historique', path: `${basePath.value}/historique`, icon: 'history', roles: ['ADMIN'] }
   ]
 
   return items.filter(item => item.roles.includes(authStore.userRole))

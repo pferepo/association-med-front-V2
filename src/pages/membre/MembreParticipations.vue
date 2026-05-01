@@ -49,7 +49,7 @@ onMounted(fetchData)
   <div>
     <div class="mb-6">
       <h1 class="text-2xl font-bold text-gray-900">Mes participations</h1>
-      <p class="text-gray-600 mt-1">Consultez vos inscriptions aux activités</p>
+      <p class="text-gray-600 mt-1">Consultez les participations aux activités</p>
     </div>
 
     <!-- Loading State -->

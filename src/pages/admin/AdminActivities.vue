@@ -15,7 +15,7 @@ const form = ref({
   membre: [],
   statut: 'EN_ATTENTE',
   statutProposition: 'SANS_VOTE',
-  modeEnvoi: 'MEMBRES', // ✅ NEW
+  modeEnvoi: 'MEMBRES',
 
   dateLimiteVote: ''
 })
